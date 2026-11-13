@@ -1,0 +1,2609 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComptaLab L3 MIAGE — Titre 4 : Les Emprunts Bancaires</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono for accounting numbers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        rennes: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#082f49',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .font-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Accounting table input styling */
+        .cell-input {
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+            transition: all 0.15s ease;
+        }
+        .cell-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #0284c7;
+            background-color: #ffffff;
+        }
+        .cell-correct {
+            background-color: #ecfdf5 !important;
+            border-color: #10b981 !important;
+            color: #065f46 !important;
+            font-weight: 600;
+        }
+        .cell-wrong {
+            background-color: #fff1f2 !important;
+            border-color: #f43f5e !important;
+            color: #9f1239 !important;
+        }
+        /* Journal entry styling */
+        .journal-border-debit {
+            border-right: 2px solid #334155;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+
+    <!-- ==================== TOP HEADER & GLOBAL PROGRESSION ==================== -->
+    <header class="sticky top-0 z-40 bg-slate-900 text-white shadow-lg border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
+                <!-- Branding -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-rennes-700 flex items-center justify-center shadow-md">
+                            <i class="fa-solid fa-landmark text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-lg tracking-tight text-white">ComptaLab</span>
+                                <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">L3 MIAGE • Univ. Rennes</span>
+                            </div>
+                            <p class="text-xs text-slate-400">Titre 4 — Les Emprunts Bancaires (CM & TD A. PIERRE)</p>
+                        </div>
+                    </div>
+                    <!-- Mobile Quick Tools -->
+                    <div class="flex md:hidden items-center gap-2">
+                        <button onclick="toggleModal('formulaModal')" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700" title="Mémento Formules & PCG">
+                            <i class="fa-solid fa-book-open"></i>
+                        </button>
+                        <button onclick="toggleCalculator()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700" title="Calculatrice financière">
+                            <i class="fa-solid fa-calculator"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progression & Action Bar -->
+                <div class="flex flex-wrap items-center justify-between md:justify-end gap-3">
+                    <!-- XP & Progress Pill -->
+                    <div class="flex items-center gap-3 bg-slate-800/90 px-3.5 py-1.5 rounded-xl border border-slate-700">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-amber-400 text-sm"></i>
+                            <span id="xpDisplay" class="font-num font-bold text-sm text-amber-300">0 XP</span>
+                        </div>
+                        <div class="h-4 w-px bg-slate-700"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 sm:w-32 bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                                <div id="globalProgressBar" class="bg-gradient-to-r from-sky-400 to-emerald-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <span id="globalProgressText" class="font-num text-xs font-bold text-emerald-400">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Utility Buttons -->
+                    <div class="hidden md:flex items-center gap-2">
+                        <button onclick="toggleModal('formulaModal')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-sky-300 border border-slate-700 flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-book-open"></i> Mémento & PCG
+                        </button>
+                        <button onclick="toggleCalculator()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-slate-700 flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-calculator"></i> Calculatrice
+                        </button>
+                        <button onclick="toggleTeacherMode()" id="teacherModeBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 flex items-center gap-1.5 transition" title="Activer les outils de démonstration rapide pour l'enseignant">
+                            <i class="fa-solid fa-chalkboard-user"></i> <span id="teacherModeLabel">Mode Étudiant</span>
+                        </button>
+                        <button onclick="toggleModal('resetModal')" class="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700 transition" title="Réinitialiser la progression">
+                            <i class="fa-solid fa-rotate-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs (5 Modules) -->
+            <nav class="flex overflow-x-auto no-scrollbar border-t border-slate-800 pt-1 -mb-px gap-1" aria-label="Modules">
+                <button onclick="switchModule(1)" id="nav-mod-1" class="mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 font-semibold text-xs sm:text-sm whitespace-nowrap transition-all">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-sky-500/20 text-sky-300" id="badge-mod-1">1</span>
+                    <span>Cours & Quiz CM</span>
+                </button>
+                <button onclick="switchModule(2)" id="nav-mod-2" class="mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 font-semibold text-xs sm:text-sm whitespace-nowrap transition-all">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-slate-700 text-slate-300" id="badge-mod-2">2</span>
+                    <span>Taux Équivalents & Calculs</span>
+                </button>
+                <button onclick="switchModule(3)" id="nav-mod-3" class="mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 font-semibold text-xs sm:text-sm whitespace-nowrap transition-all">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-slate-700 text-slate-300" id="badge-mod-3">3</span>
+                    <span>Tableaux d'Amortissement (TD)</span>
+                </button>
+                <button onclick="switchModule(4)" id="nav-mod-4" class="mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 font-semibold text-xs sm:text-sm whitespace-nowrap transition-all">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-slate-700 text-slate-300" id="badge-mod-4">4</span>
+                    <span>Écritures Comptables (PCG)</span>
+                </button>
+                <button onclick="switchModule(5)" id="nav-mod-5" class="mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 font-semibold text-xs sm:text-sm whitespace-nowrap transition-all">
+                    <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-slate-700 text-slate-300" id="badge-mod-5">5</span>
+                    <span>Simulateur & Examen Blanc</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Teacher Mode Banner (hidden by default) -->
+    <div id="teacherBanner" class="hidden bg-indigo-950 text-indigo-100 border-b border-indigo-700 px-4 py-2 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-indigo-600 text-white font-bold uppercase">Mode Enseignant Actif</span>
+                <span>Vous pouvez pré-remplir instantanément chaque exercice du TD ou valider tous les modules en un clic pour projeter en classe.</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="unlockAllProgress()" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition">
+                    <i class="fa-solid fa-check-double mr-1"></i> Simuler 100% complété
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- =================================================================== -->
+        <!-- MODULE 1 : COURS INTERACTIF & QUIZ FONDAMENTAUX (CM TITRE 4)        -->
+        <!-- =================================================================== -->
+        <section id="module-1" class="space-y-8">
+            <!-- Hero Banner Module 1 -->
+            <div class="bg-gradient-to-r from-rennes-900 via-rennes-800 to-sky-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-400/20 text-sky-200 border border-sky-400/30 mb-2">
+                            <i class="fa-solid fa-graduation-cap"></i> Module 1 sur 5 • Fondamentaux du Cours Magistral
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Principes Généraux & Traitement des Emprunts</h1>
+                        <p class="text-sky-100/90 text-sm mt-1 max-w-3xl">
+                            Explorez l'architecture des financements de l'entreprise, comparez dynamiquement les 3 modalités de remboursement sur l'exemple du CM (60 000 € à 4% sur 6 ans) et validez vos acquis avec le QCM.
+                        </p>
+                    </div>
+                    <div class="flex sm:flex-row flex-col gap-2 shrink-0">
+                        <a href="#quiz-mod1-anchor" class="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm text-center shadow transition">
+                            <i class="fa-solid fa-circle-question mr-1.5"></i> Aller au Quiz (8 QCM)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1.1 Schéma Interactif des Financements (Slide 2 CM) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-600">1. Principes généraux (CM Diapo 120)</span>
+                        <h2 class="text-lg font-bold text-slate-900">La place de l'emprunt dans les sources de financement</h2>
+                    </div>
+                    <span class="text-xs text-slate-500"><i class="fa-solid fa-hand-pointer mr-1 text-sky-500"></i>Cliquez sur une brique du schéma pour afficher ses caractéristiques</span>
+                </div>
+
+                <!-- Interactive Tree Diagram faithful to CM Slide 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div class="lg:col-span-8 bg-slate-50 rounded-xl p-5 border border-slate-200">
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-start">
+                            <!-- Autofinancement -->
+                            <div class="flex flex-col items-center">
+                                <div class="h-7 flex items-center text-[11px] font-bold uppercase text-slate-400">Interne</div>
+                                <button onclick="showFinInfo('auto')" id="fin-btn-auto" class="fin-node w-full py-3.5 px-3 rounded-xl bg-rennes-800 hover:bg-rennes-700 text-white font-semibold text-sm shadow transition text-center">
+                                    Autofinancement
+                                </button>
+                                <span class="text-xs text-slate-500 mt-1.5 font-medium">Activité propre (CAF)</span>
+                            </div>
+
+                            <!-- Financements externes bracket -->
+                            <div class="sm:col-span-3 flex flex-col">
+                                <div class="h-7 flex flex-col items-center justify-end mb-1">
+                                    <span class="text-xs font-bold text-slate-700">Financements externes</span>
+                                    <div class="w-full h-2 border-t-2 border-l-2 border-r-2 border-slate-400 rounded-t"></div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <!-- Capitaux propres -->
+                                    <div class="flex flex-col items-center">
+                                        <button onclick="showFinInfo('cp')" id="fin-btn-cp" class="fin-node w-full py-3.5 px-3 rounded-xl bg-rennes-800 hover:bg-rennes-700 text-white font-semibold text-sm shadow transition text-center">
+                                            Capitaux propres
+                                        </button>
+                                        <span class="text-xs text-slate-600 mt-1.5 font-medium">Actionnaires</span>
+                                    </div>
+                                    <!-- Subventions -->
+                                    <div class="flex flex-col items-center">
+                                        <button onclick="showFinInfo('sub')" id="fin-btn-sub" class="fin-node w-full py-3.5 px-2 rounded-xl bg-rennes-800 hover:bg-rennes-700 text-white font-semibold text-xs sm:text-sm shadow transition text-center leading-tight">
+                                            Subventions et aides publiques
+                                        </button>
+                                        <span class="text-xs text-slate-600 mt-1.5 font-medium text-center">Organisations publiques</span>
+                                    </div>
+                                    <!-- Financements bancaires -->
+                                    <div class="flex flex-col items-center">
+                                        <button onclick="showFinInfo('banque')" id="fin-btn-banque" class="fin-node w-full py-3.5 px-2 rounded-xl bg-rennes-800 hover:bg-rennes-700 text-white font-semibold text-xs sm:text-sm shadow transition text-center leading-tight">
+                                            Financements bancaires
+                                        </button>
+                                        <span class="text-xs text-slate-600 mt-1.5 font-medium">Banques</span>
+                                        <!-- Sub-branches: Crédit-bail & Emprunts -->
+                                        <div class="w-full grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-dashed border-slate-300">
+                                            <button onclick="showFinInfo('cb')" id="fin-btn-cb" class="fin-node py-2.5 px-2 rounded-lg bg-rennes-700 hover:bg-rennes-600 text-white text-xs font-semibold shadow transition">
+                                                Crédit-bail
+                                            </button>
+                                            <button onclick="showFinInfo('emprunt')" id="fin-btn-emprunt" class="fin-node py-2.5 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md ring-2 ring-rose-400 ring-offset-2 transition">
+                                                Emprunts ★
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explanation Panel -->
+                    <div id="finInfoBox" class="lg:col-span-4 bg-gradient-to-br from-slate-900 to-rennes-900 text-white rounded-xl p-5 shadow-inner h-full flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span id="finInfoTag" class="text-[11px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30">Cœur du Chapitre (Titre 4)</span>
+                                <i class="fa-solid fa-circle-info text-sky-400"></i>
+                            </div>
+                            <h3 id="finInfoTitle" class="text-lg font-bold text-white mb-2">Les Emprunts Bancaires (Compte 164)</h3>
+                            <p id="finInfoDesc" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                                Somme d'argent (capital) mise à la disposition par un établissement financier (prêteur) à un emprunteur. L'emprunteur s'engage à rembourser ce capital avec intérêts sur une durée allant d'un an à plus de 20 ans.
+                            </p>
+                        </div>
+                        <div id="finInfoRule" class="mt-4 pt-3 border-t border-slate-700/80 text-xs text-sky-300 font-medium">
+                            <i class="fa-solid fa-scale-balanced mr-1"></i> PCG : Enregistré au passif dans le compte <strong>164 - Emprunts auprès des établissements de crédit</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1.2 Formules Fondamentales & Comparateur Interactif du CM (60 000 € / 4% / 6 ans) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Key Formulas Card -->
+                <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between space-y-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Formules Indispensables (CM Diapos 121-122)</span>
+                        <h2 class="text-lg font-bold text-slate-900 mt-0.5">Mécanique Mathématique d'un Emprunt</h2>
+                        
+                        <div class="space-y-3 mt-4">
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="text-xs font-bold text-slate-500 uppercase">1. Intérêts périodiques</div>
+                                <div class="font-num font-bold text-sm sm:text-base text-slate-900 mt-1">
+                                    Intérêts = Capital restant dû (début) × Taux (i)
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">Le taux d'intérêt peut être <strong>fixe</strong> ou <strong>variable</strong>. Les intérêts se calculent toujours sur le capital non encore remboursé.</p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="text-xs font-bold text-slate-500 uppercase">2. Paiement périodique (Annuité / Mensualité)</div>
+                                <div class="font-num font-bold text-sm sm:text-base text-slate-900 mt-1">
+                                    Annuité = Amortissement du capital + Intérêt
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">Attention à ne jamais confondre l'<strong>amortissement</strong> (part de capital remboursée) et l'<strong>annuité</strong> (décaissement total).</p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200">
+                                <div class="text-xs font-bold text-sky-800 uppercase">3. Formule de l'Annuité Constante</div>
+                                <div class="font-num font-bold text-sm sm:text-base text-sky-950 mt-1">
+                                    Annuité = Capital × [ i / (1 - (1 + i)<sup>-n</sup>) ]
+                                </div>
+                                <p class="text-xs text-sky-800 mt-1">Où <span class="font-num font-semibold">i</span> est le taux périodique et <span class="font-num font-semibold">n</span> le nombre total d'échéances.</p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+                                <div class="text-xs font-bold text-amber-900 uppercase">4. Taux Équivalent (Périodicité infra-annuelle)</div>
+                                <div class="font-num font-bold text-sm sm:text-base text-amber-950 mt-1">
+                                    i<sub>x</sub> = (1 + i)<sup>(1/x)</sup> - 1
+                                </div>
+                                <p class="text-xs text-amber-800 mt-1">Avec <span class="font-num font-bold">x = 12</span> (mensuel), <span class="font-num font-bold">x = 4</span> (trimestriel), <span class="font-num font-bold">x = 2</span> (semestriel).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Règle d'or PCG -->
+                    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5"></i>
+                        <div class="text-xs text-rose-900 leading-relaxed">
+                            <strong>Règle d'or fiscale & comptable (CM Diapo 126) :</strong><br>
+                            L'emprunt et les intérêts sont des <strong>opérations financières : PAS DE TVA</strong> sur le capital emprunté (164) ni sur les intérêts (661). En revanche, les <strong>frais bancaires de dossier (627)</strong> sont des prestations de services soumises à la <strong>TVA déductible (44566) à 20%</strong> !
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Interactive CM Example Comparator (60 000 € / 4% / 6 ans) -->
+                <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Exemple Officiel du CM (Diapos 123 à 125)</span>
+                                <h2 class="text-lg font-bold text-slate-900">Comparateur des 3 Modalités (60 000 € • 4% • 6 ans)</h2>
+                            </div>
+                            <!-- Mode Switcher -->
+                            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+                                <button onclick="setCmMode('infine')" id="cm-btn-infine" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">In fine</button>
+                                <button onclick="setCmMode('const')" id="cm-btn-const" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">Amort. constant</button>
+                                <button onclick="setCmMode('annuite')" id="cm-btn-annuite" class="px-3 py-1.5 rounded-lg text-xs font-bold transition">Annuité constante</button>
+                            </div>
+                        </div>
+
+                        <!-- Mode Principle & Advantage Callout -->
+                        <div id="cmModeExplain" class="my-4 p-3.5 rounded-xl bg-sky-50 border border-sky-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <!-- Filled by JS -->
+                        </div>
+
+                        <!-- Table of the CM Example -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                                        <th class="py-2.5 px-3">Années</th>
+                                        <th class="py-2.5 px-3 text-right">Capital début</th>
+                                        <th class="py-2.5 px-3 text-right text-amber-300">Intérêts (4%)</th>
+                                        <th class="py-2.5 px-3 text-right text-emerald-300">Amortissement</th>
+                                        <th class="py-2.5 px-3 text-right text-sky-300">Annuité</th>
+                                        <th class="py-2.5 px-3 text-right">Capital fin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cmTableBody" class="divide-y divide-slate-200 text-xs sm:text-sm font-num">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                                <tfoot id="cmTableFoot" class="bg-slate-100 font-bold text-xs sm:text-sm font-num border-t-2 border-slate-300">
+                                    <!-- Populated dynamically -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Visual Cost Comparison Bar -->
+                    <div class="mt-5 pt-4 border-t border-slate-100">
+                        <div class="text-xs font-bold text-slate-600 mb-2 flex items-center justify-between">
+                            <span>Comparaison du coût total des intérêts (sur 60 000 € à 4% sur 6 ans) :</span>
+                            <span class="text-emerald-700 font-num">Amort. constant = le moins coûteux (8 400 €)</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 text-xs">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <div class="text-slate-500 font-semibold">1. In fine</div>
+                                <div class="font-num font-bold text-base text-rose-600">14 400,00 €</div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1"><div class="bg-rose-500 h-1.5 rounded-full" style="width: 100%"></div></div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-200">
+                                <div class="text-emerald-800 font-semibold">2. Amort. constant</div>
+                                <div class="font-num font-bold text-base text-emerald-700">8 400,00 €</div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 58.3%"></div></div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-sky-50/60 border border-sky-200">
+                                <div class="text-sky-800 font-semibold">3. Annuité constante</div>
+                                <div class="font-num font-bold text-base text-sky-700">8 674,26 €</div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1"><div class="bg-sky-500 h-1.5 rounded-full" style="width: 60.2%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1.3 Quiz de Validation du Module 1 (8 Questions) -->
+            <div id="quiz-mod1-anchor" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 mb-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Validation des Acquis • +150 XP</span>
+                        <h2 class="text-xl font-bold text-slate-900">Quiz Fondamentaux : Cours & Règles Comptables (8 QCM)</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="quizScoreBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            Score : 0 / 8
+                        </span>
+                        <button onclick="resetQuizMod1()" class="text-xs text-slate-500 hover:text-sky-600 font-semibold underline">Recommencer le quiz</button>
+                    </div>
+                </div>
+
+                <div id="quizContainerMod1" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Rendered via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- MODULE 2 : ATELIER TAUX ÉQUIVALENTS & CALCULS FINANCIERS (TD EX 2)  -->
+        <!-- =================================================================== -->
+        <section id="module-2" class="hidden space-y-8">
+            <!-- Hero Banner Module 2 -->
+            <div class="bg-gradient-to-r from-slate-900 via-sky-900 to-rennes-800 rounded-2xl p-6 text-white shadow-md">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-400/20 text-amber-200 border border-amber-400/30 mb-2">
+                    <i class="fa-solid fa-superscript"></i> Module 2 sur 5 • Mathématiques Financières & TD Exercice 2 Q1
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Calculer le Taux Équivalent & l'Annuité Constante</h1>
+                <p class="text-sky-100/90 text-sm mt-1 max-w-3xl">
+                    Maîtrisez la formule générale du taux équivalent <span class="font-num font-semibold">i<sub>x</sub> = (1 + i)<sup>(1/x)</sup> - 1</span> (fiche méthodologique du TD page 2) et résolvez la question 1 du cas de la société anonyme <strong>DALI</strong>.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Fiche Méthodologique du TD (Démonstration mathématique) -->
+                <div class="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Fiche Méthodologique du TD (Page 2)</span>
+                        <h2 class="text-lg font-bold text-slate-900 mt-1">Pourquoi utilise-t-on le taux équivalent ?</h2>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                            Un capital <strong class="font-num">K</strong> est placé pendant <strong class="font-num">n</strong> années au taux annuel <strong class="font-num">i</strong>. Le taux équivalent <strong class="font-num">i<sub>x</sub></strong> pour une fraction de l'année (<strong class="font-num">x</strong> périodes par an) est le taux qui permet d'obtenir exactement la <strong>même valeur acquise</strong> par capitalisation composée :
+                        </p>
+
+                        <!-- Step-by-step equation box matching TD Page 2 -->
+                        <div class="my-4 p-4 rounded-xl bg-sky-50/80 border-l-4 border-sky-600 font-num text-xs sm:text-sm space-y-2 text-slate-800">
+                            <div><span class="text-slate-500">1. Valeur acquise annuelle :</span> <strong>V = K (1 + i)<sup>n</sup></strong></div>
+                            <div><span class="text-slate-500">2. Égalité sur x×n périodes :</span> <strong>K (1 + i<sub>x</sub>)<sup>x·n</sup> = K (1 + i)<sup>n</sup></strong></div>
+                            <div><span class="text-slate-500">3. Simplification par K et n :</span> <strong>(1 + i<sub>x</sub>)<sup>x</sup> = (1 + i)</strong></div>
+                            <div><span class="text-slate-500">4. Passage à la racine x-ième :</span> <strong>(1 + i<sub>x</sub>) = (1 + i)<sup>(1/x)</sup></strong></div>
+                            <div class="pt-1 border-t border-sky-200 text-sky-900 font-bold text-sm sm:text-base">
+                                ⇒ Taux équivalent : i<sub>x</sub> = (1 + i)<sup>(1/x)</sup> - 1
+                            </div>
+                        </div>
+
+                        <!-- Interactive Simulator of Equivalent Rate -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 mt-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold uppercase text-slate-700"><i class="fa-solid fa-sliders mr-1 text-sky-600"></i> Convertisseur Interactif de Taux</span>
+                                <span class="text-xs text-slate-500">Testez n'importe quel taux annuel</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Taux d'intérêt annuel (i en %)</label>
+                                    <input type="number" id="simRateInput" value="5" step="0.1" min="0.1" max="50" oninput="updateEqConverter()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-num font-bold text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Périodicité (x périodes / an)</label>
+                                    <select id="simPeriodSelect" onchange="updateEqConverter()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-semibold text-sm bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                                        <option value="12">Mensuelle (x = 12)</option>
+                                        <option value="4">Trimestrielle (x = 4)</option>
+                                        <option value="2">Semestrielle (x = 2)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="eqConverterResult" class="p-3 rounded-lg bg-slate-900 text-white font-num text-xs sm:text-sm">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Exercice Officiel TD Ex 2 Q1 (Société DALI) + Défis de Calcul -->
+                <div class="lg:col-span-6 space-y-6">
+                    <!-- Cas DALI Q1 -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Application TD • Exercice 2 Question 1 (+100 XP)</span>
+                                <h2 class="text-lg font-bold text-slate-900">Cas de la Société Anonyme DALI</h2>
+                            </div>
+                            <button onclick="fillDaliRates()" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold transition" title="Afficher la réponse">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Corrigé
+                            </button>
+                        </div>
+
+                        <div class="my-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            <strong>Énoncé :</strong> Le 1<sup>er</sup> avril N, la SA <strong>Dali</strong> contracte un emprunt de <strong class="font-num">80 000 €</strong>, remboursable par amortissement constant sur <strong>4 ans</strong>. Le taux d'intérêt annuel est de <strong class="font-num">5,00%</strong>.<br>
+                            <em>1. Déterminer le taux équivalent mensuel et trimestriel (arrondir à 3 décimales en %, ex: 0,407).</em>
+                        </div>
+
+                        <div class="space-y-4 mt-4">
+                            <!-- Question 1A: Mensuel -->
+                            <div class="p-4 rounded-xl border border-slate-200 bg-white">
+                                <label class="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
+                                    a) Taux mensuel équivalent (x = 12) en % :
+                                </label>
+                                <div class="text-xs text-slate-500 font-num mb-2">Formule : (1 + 5%)<sup>(1/12)</sup> - 1</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="daliMensuelInput" placeholder="Ex: 0,407" class="cell-input w-40 px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold">
+                                    <span class="font-num font-bold text-slate-600">%</span>
+                                    <span id="daliMensuelFeedback" class="text-xs font-semibold ml-2"></span>
+                                </div>
+                            </div>
+
+                            <!-- Question 1B: Trimestriel -->
+                            <div class="p-4 rounded-xl border border-slate-200 bg-white">
+                                <label class="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
+                                    b) Taux trimestriel équivalent (x = 4) en % :
+                                </label>
+                                <div class="text-xs text-slate-500 font-num mb-2">Formule : (1 + 5%)<sup>(1/4)</sup> - 1</div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="daliTrimInput" placeholder="Ex: 1,227" class="cell-input w-40 px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold">
+                                    <span class="font-num font-bold text-slate-600">%</span>
+                                    <span id="daliTrimFeedback" class="text-xs font-semibold ml-2"></span>
+                                </div>
+                            </div>
+
+                            <!-- Bonus Question: Annuité constante Gauguin -->
+                            <div class="p-4 rounded-xl border border-slate-200 bg-white">
+                                <label class="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
+                                    c) Préparation TD Ex 1 (Société GAUGUIN) — Calcul de l'annuité constante :
+                                </label>
+                                <div class="text-xs text-slate-500 mb-2">
+                                    Capital = <span class="font-num font-semibold">630 000 €</span>, Taux annuel = <span class="font-num font-semibold">5,4%</span>, Durée = <span class="font-num font-semibold">6 ans</span>.<br>
+                                    <span class="font-num">Annuité = 630 000 × 5,4% / (1 - (1 + 5,4%)<sup>-6</sup>)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="gauguinAnnuiteInput" placeholder="Ex: 125713,27" class="cell-input w-44 px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold">
+                                    <span class="font-num font-bold text-slate-600">€</span>
+                                    <span id="gauguinAnnuiteFeedback" class="text-xs font-semibold ml-2"></span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2">
+                                <button onclick="verifyModule2()" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow transition flex items-center gap-2">
+                                    <i class="fa-solid fa-check-circle"></i> Vérifier mes calculs financiers
+                                </button>
+                                <button onclick="switchModule(3)" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm transition">
+                                    Passer aux Tableaux du TD <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- MODULE 3 : TABLEAUX D'AMORTISSEMENT INTERACTIFS (TD EX 1 & EX 2)    -->
+        <!-- =================================================================== -->
+        <section id="module-3" class="hidden space-y-8">
+            <!-- Hero Banner Module 3 -->
+            <div class="bg-gradient-to-r from-rennes-900 via-slate-900 to-emerald-950 rounded-2xl p-6 text-white shadow-md">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 mb-2">
+                            <i class="fa-solid fa-table"></i> Module 3 sur 5 • Entraînement Pratique Intégral du TD (Ex 1 & Ex 2)
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Tableaux de Remboursement des Emprunts</h1>
+                        <p class="text-slate-200 text-sm mt-1 max-w-3xl">
+                            Complétez les tableaux d'amortissement des sociétés <strong>GAUGUIN</strong> (Exercice 1) et <strong>DALI</strong> (Exercice 2). Vous pouvez saisir toutes les lignes ou remplir la 1<sup>re</sup> ligne puis utiliser le bouton <em>« Auto-compléter la suite »</em>.
+                        </p>
+                    </div>
+                    <!-- Case Selector -->
+                    <div class="inline-flex rounded-xl bg-slate-800/90 p-1.5 border border-slate-700 shrink-0">
+                        <button onclick="switchTdCase('gauguin')" id="td-case-btn-gauguin" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+                            Ex 1 : Société GAUGUIN
+                        </button>
+                        <button onclick="switchTdCase('dali')" id="td-case-btn-dali" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+                            Ex 2 : Société DALI
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= CAS 1 : EXERCICE 1 - SOCIÉTÉ GAUGUIN ================= -->
+            <div id="td-case-gauguin" class="space-y-6">
+                <!-- Enoncé Card Gauguin -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-md bg-sky-100 text-sky-800 font-bold text-xs">TD Exercice 1 • Question 1</span>
+                                <h2 class="text-lg font-bold text-slate-900">Société GAUGUIN — Comparaison des 3 modalités</h2>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                                Le <strong>1<sup>er</sup> juin N</strong>, la société <strong>GAUGUIN</strong> a obtenu de sa banque un prêt de <strong class="font-num text-slate-900">630 000 €</strong> aux conditions suivantes : taux d'intérêt : <strong class="font-num text-slate-900">5,4%</strong> ; durée : <strong class="font-num text-slate-900">6 ans</strong>. Première échéance le <strong>01/06/N+1</strong>. (Frais bancaires : 2 500 € HT traités au Module 4).
+                            </p>
+                        </div>
+                        <!-- Sub-tabs for the 3 modalities of Gauguin -->
+                        <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0">
+                            <button onclick="loadTableActivity('gauguin_infine')" id="tab-gauguin_infine" class="td-subtab px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                1A. In fine
+                            </button>
+                            <button onclick="loadTableActivity('gauguin_const')" id="tab-gauguin_const" class="td-subtab px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                1B. Amort. constant
+                            </button>
+                            <button onclick="loadTableActivity('gauguin_annuite')" id="tab-gauguin_annuite" class="td-subtab px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                1C. Annuité constante
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= CAS 2 : EXERCICE 2 - SOCIÉTÉ DALI ================= -->
+            <div id="td-case-dali" class="hidden space-y-6">
+                <!-- Enoncé Card Dali -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs">TD Exercice 2 • Question 2</span>
+                                <h2 class="text-lg font-bold text-slate-900">Société Anonyme DALI — Périodicité Annuelle, Trimestrielle, Mensuelle</h2>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                                Emprunt le <strong>1<sup>er</sup> avril N</strong> de <strong class="font-num text-slate-900">80 000 €</strong>, remboursable par <strong>amortissement constant sur 4 ans</strong> au taux annuel de <strong class="font-num text-slate-900">5,00%</strong> (soit <span class="font-num">i<sub>4</sub> = 1,227%</span> par trimestre et <span class="font-num">i<sub>12</sub> = 0,407%</span> par mois). Présenter le tableau pour la <strong>première année (jusqu'au 31 mars N+1)</strong>.
+                            </p>
+                        </div>
+                        <!-- Sub-tabs for the 3 periodicities of Dali -->
+                        <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shrink-0">
+                            <button onclick="loadTableActivity('dali_annuel')" id="tab-dali_annuel" class="td-subtab px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                2A. Échéance annuelle
+                            </button>
+                            <button onclick="loadTableActivity('dali_trim')" id="tab-dali_trim" class="td-subtab px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                2B. Trimestrielle (4 lignes)
+                            </button>
+                            <button onclick="loadTableActivity('dali_mensuel')" id="tab-dali_mensuel" class="td-subtab px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                                2C. Mensuelle (12 lignes)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SHARED INTERACTIVE SPREADSHEET WORKSPACE -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <!-- Toolbar -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 mb-4 border-b border-slate-100">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="activeTableTitle" class="text-base sm:text-lg font-bold text-slate-900">Tableau de remboursement</h3>
+                            <span id="activeTableStatusBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">En cours</span>
+                        </div>
+                        <p id="activeTableHint" class="text-xs text-sky-700 font-medium mt-1"></p>
+                    </div>
+
+                    <!-- Spreadsheet Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="verifyActiveTable()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-check-double"></i> Vérifier mes cellules
+                        </button>
+                        <button onclick="autoCompleteRemainingRows()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5" title="Si vous avez compris la 1re ligne, déroule automatiquement les lignes suivantes">
+                            <i class="fa-solid fa-bolt"></i> Auto-compléter la suite
+                        </button>
+                        <button onclick="fillActiveTableCorrection()" class="px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold text-xs sm:text-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-eye"></i> Afficher le corrigé
+                        </button>
+                        <button onclick="clearActiveTable()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs sm:text-sm transition" title="Vider les cellules">
+                            <i class="fa-solid fa-eraser"></i> Vider
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pedagogical Alert if Trimestrialité Dali is active -->
+                <div id="daliTrimNote" class="hidden mb-4 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                    <i class="fa-solid fa-lightbulb text-amber-600 mr-1.5"></i>
+                    <strong>Note bienveillante sur le corrigé TD (Échéance trimestrielle) :</strong> L'amortissement est de <span class="font-num font-bold">5 000,00 €</span> et l'intérêt du 1<sup>er</sup> trimestre est de <span class="font-num font-bold">80 000 × 1,227% = 981,60 €</span>. Le correcteur accepte aussi bien la somme exacte (<span class="font-num font-bold">5 981,60 €</span> ; <span class="font-num font-bold">5 920,25 €</span> ; <span class="font-num font-bold">5 858,90 €</span> ; <span class="font-num font-bold">5 797,55 €</span>) que les valeurs imprimées dans le polycopié (<span class="font-num">5 809,60 €</span>, etc.).
+                </div>
+
+                <!-- Interactive Table Container -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                                <th class="py-3 px-3 w-28">Échéances</th>
+                                <th class="py-3 px-3 text-right">Capital dû en début de période</th>
+                                <th class="py-3 px-3 text-right text-amber-300">Intérêts</th>
+                                <th class="py-3 px-3 text-right text-emerald-300">Amortissement de l'emprunt</th>
+                                <th class="py-3 px-3 text-right text-sky-300" id="activeTableColPayment">Annuité</th>
+                                <th class="py-3 px-3 text-right">Capital dû en fin de période</th>
+                            </tr>
+                        </thead>
+                        <tbody id="interactiveTableBody" class="divide-y divide-slate-200 text-xs sm:text-sm">
+                            <!-- Generated dynamically by JS -->
+                        </tbody>
+                        <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-bold text-xs sm:text-sm">
+                            <tr>
+                                <td class="py-3 px-3 text-slate-800">Total Intérêts</td>
+                                <td class="py-3 px-3 text-right text-slate-400">—</td>
+                                <td class="py-2.5 px-2 text-right">
+                                    <input type="text" id="inputTotalInterest" placeholder="Total intérêts" class="cell-input w-full max-w-[150px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-bold">
+                                </td>
+                                <td class="py-3 px-3 text-right text-slate-500 font-num" id="footerTotalAmort">—</td>
+                                <td class="py-3 px-3 text-right text-slate-400">—</td>
+                                <td class="py-3 px-3 text-right text-slate-400">—</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Feedback Bar under Table -->
+                <div id="tableFeedbackBanner" class="mt-4 hidden p-4 rounded-xl text-xs sm:text-sm font-medium"></div>
+            </div>
+
+            <!-- SYNTHESIS & ADVISORY QUESTIONS FROM THE TD (Ex 1 Advantage & Ex 2 Advice to Dali) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Synthèse Ex 1 : Avantages de chaque mode (Société Gauguin) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Synthèse TD Exercice 1.1 (+50 XP)</span>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-1">Associez chaque modalité à son avantage financier</h3>
+                        <p class="text-xs text-slate-500 mt-1 mb-4">D'après vos tableaux de la société GAUGUIN (Intérêts totaux : In fine = 204 120 € | Amort. constant = 119 070 € | Annuité constante = 124 279,60 €) :</p>
+
+                        <div class="space-y-3 text-xs sm:text-sm">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <label class="font-bold text-slate-800 block mb-1">1. Remboursement in fine :</label>
+                                <select id="adv-select-infine" class="w-full p-2 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm">
+                                    <option value="">— Choisir l'avantage principal —</option>
+                                    <option value="diff">Possibilité de différer au plus possible les décaissements de capital</option>
+                                    <option value="cout">Coût de l'emprunt le moins élevé à taux d'intérêt identique</option>
+                                    <option value="id">Coût proche de l'amortissement constant et décaissements périodiques identiques</option>
+                                </select>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <label class="font-bold text-slate-800 block mb-1">2. Remboursement par amortissement constant :</label>
+                                <select id="adv-select-const" class="w-full p-2 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm">
+                                    <option value="">— Choisir l'avantage principal —</option>
+                                    <option value="diff">Possibilité de différer au plus possible les décaissements de capital</option>
+                                    <option value="cout">Coût de l'emprunt le moins élevé à taux d'intérêt identique</option>
+                                    <option value="id">Coût proche de l'amortissement constant et décaissements périodiques identiques</option>
+                                </select>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                <label class="font-bold text-slate-800 block mb-1">3. Remboursement par annuité constante :</label>
+                                <select id="adv-select-annuite" class="w-full p-2 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm">
+                                    <option value="">— Choisir l'avantage principal —</option>
+                                    <option value="diff">Possibilité de différer au plus possible les décaissements de capital</option>
+                                    <option value="cout">Coût de l'emprunt le moins élevé à taux d'intérêt identique</option>
+                                    <option value="id">Coût proche de l'amortissement constant et décaissements périodiques identiques</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <button onclick="verifySynthesisEx1()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs sm:text-sm transition">
+                            Valider la synthèse Ex 1
+                        </button>
+                        <span id="synthEx1Feedback" class="text-xs font-bold"></span>
+                    </div>
+                </div>
+
+                <!-- Synthèse Ex 2 Q3 : Conseil à l'entreprise DALI -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Conseil de Gestion • TD Exercice 2 Question 3 (+50 XP)</span>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-1">Quelle modalité conseillez-vous à l'entreprise DALI ?</h3>
+                        <p class="text-xs text-slate-500 mt-1 mb-3">
+                            Comparaison des intérêts de la 1<sup>re</sup> année : Annuelle = <strong class="font-num">4 000,00 €</strong> | Trimestrielle = <strong class="font-num">3 558,30 €</strong> | Mensuelle = <strong class="font-num">3 459,50 €</strong>. Cochez les <strong>2 affirmations exactes</strong> du corrigé :
+                        </p>
+
+                        <div class="space-y-2.5 text-xs sm:text-sm">
+                            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-sky-50/50 transition">
+                                <input type="checkbox" id="dali-adv-1" class="mt-1 rounded text-sky-600 focus:ring-sky-500">
+                                <span><strong>Opter pour l'échéance mensuelle</strong> si l'enjeu principal est le <strong>coût de l'emprunt</strong> : plus l'échéance est courte, plus des remboursements interviennent tôt dans l'année, faisant décroître le capital restant dû et réduisant les intérêts.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-sky-50/50 transition">
+                                <input type="checkbox" id="dali-adv-2" class="mt-1 rounded text-sky-600 focus:ring-sky-500">
+                                <span><strong>Opter pour l'échéance annuelle</strong> si l'enjeu de la <strong>disponibilité de la trésorerie</strong> est principal, ou si l'entreprise sait réinvestir la trésorerie générée dans des projets avec un <strong>taux de rendement &gt; 5,00%</strong>.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-sky-50/50 transition">
+                                <input type="checkbox" id="dali-adv-3" class="mt-1 rounded text-sky-600 focus:ring-sky-500">
+                                <span>Le choix de la périodicité n'a aucun impact sur le montant total des intérêts puisque le taux annuel équivalent est de 5,00% dans les trois cas.</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <button onclick="verifySynthesisEx2()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition">
+                            Valider le conseil à DALI
+                        </button>
+                        <span id="synthEx2Feedback" class="text-xs font-bold"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- MODULE 4 : SIMULATEUR D'ÉCRITURES COMPTABLES AU JOURNAL (PCG)       -->
+        <!-- =================================================================== -->
+        <section id="module-4" class="hidden space-y-8">
+            <!-- Hero Banner Module 4 -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-rennes-900 rounded-2xl p-6 text-white shadow-md">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-400/20 text-indigo-200 border border-indigo-400/30 mb-2">
+                    <i class="fa-solid fa-pen-nib"></i> Module 4 sur 5 • Traitement Comptable (CM Diapos 126-127 & TD Ex 1 Q2-Q3)
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Atelier de Saisie au Journal Comptable (PCG)</h1>
+                <p class="text-indigo-100/90 text-sm mt-1 max-w-3xl">
+                    Enregistrez les écritures de <strong>souscription d'emprunt</strong> (sans frais ou avec frais bancaires HT et TVA déductible à 20%) et de <strong>paiement des annuités</strong> dans le livre-journal.
+                </p>
+            </div>
+
+            <!-- Selector for the 4 Accounting Exercises -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <button onclick="loadJournalExercise(0)" id="j-tab-0" class="j-card text-left p-4 rounded-2xl border transition shadow-sm">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase mb-1">
+                        <span class="text-sky-600">Cas 1 • Exemple CM</span>
+                        <span id="j-status-0" class="text-slate-400"><i class="fa-regular fa-circle"></i></span>
+                    </div>
+                    <div class="font-bold text-sm text-slate-900">Souscription simple (sans frais)</div>
+                    <div class="text-xs text-slate-500 mt-1">Emprunt 60 000 € • Opération financière sans TVA</div>
+                </button>
+
+                <button onclick="loadJournalExercise(1)" id="j-tab-1" class="j-card text-left p-4 rounded-2xl border transition shadow-sm">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase mb-1">
+                        <span class="text-emerald-600">Cas 2 • TD Ex 1 Q2</span>
+                        <span id="j-status-1" class="text-slate-400"><i class="fa-regular fa-circle"></i></span>
+                    </div>
+                    <div class="font-bold text-sm text-slate-900">Souscription GAUGUIN (avec frais)</div>
+                    <div class="text-xs text-slate-500 mt-1">01/06/N • 630 000 € • Frais 2 500 € HT (TVA 20%)</div>
+                </button>
+
+                <button onclick="loadJournalExercise(2)" id="j-tab-2" class="j-card text-left p-4 rounded-2xl border transition shadow-sm">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase mb-1">
+                        <span class="text-sky-600">Cas 3 • Exemple CM</span>
+                        <span id="j-status-2" class="text-slate-400"><i class="fa-regular fa-circle"></i></span>
+                    </div>
+                    <div class="font-bold text-sm text-slate-900">Paiement 1<sup>re</sup> annuité (CM)</div>
+                    <div class="text-xs text-slate-500 mt-1">Amortissement 10 000 € + Intérêts 2 400 €</div>
+                </button>
+
+                <button onclick="loadJournalExercise(3)" id="j-tab-3" class="j-card text-left p-4 rounded-2xl border transition shadow-sm">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase mb-1">
+                        <span class="text-emerald-600">Cas 4 • TD Ex 1 Q3</span>
+                        <span id="j-status-3" class="text-slate-400"><i class="fa-regular fa-circle"></i></span>
+                    </div>
+                    <div class="font-bold text-sm text-slate-900">4<sup>e</sup> annuité GAUGUIN (01/06/N+4)</div>
+                    <div class="text-xs text-slate-500 mt-1">Remboursement en mode amortissement constant</div>
+                </button>
+            </div>
+
+            <!-- Journal Simulator Workspace -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Left: Exercise Prompt & Accounting Rules Helper -->
+                <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <div>
+                        <span id="journalBadge" class="text-xs font-bold uppercase tracking-wider text-sky-600">Énoncé de l'écriture</span>
+                        <h2 id="journalTitle" class="text-lg font-bold text-slate-900 mt-1">Souscription de l'emprunt</h2>
+                        <div id="journalPrompt" class="mt-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Mini Plan de Comptes Aide -->
+                    <div class="pt-3 border-t border-slate-100">
+                        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2"><i class="fa-solid fa-bookmark mr-1 text-sky-500"></i> Extrait du Plan Comptable Général (PCG)</h3>
+                        <ul class="space-y-1.5 text-xs font-num">
+                            <li class="p-2 rounded-lg bg-slate-50 flex justify-between"><strong class="text-sky-700">164</strong> <span class="font-sans text-slate-700">Emprunts auprès des étab. de crédit</span></li>
+                            <li class="p-2 rounded-lg bg-slate-50 flex justify-between"><strong class="text-sky-700">44566</strong> <span class="font-sans text-slate-700">État - TVA déductible sur B&amp;S</span></li>
+                            <li class="p-2 rounded-lg bg-slate-50 flex justify-between"><strong class="text-sky-700">512</strong> <span class="font-sans text-slate-700">Banque</span></li>
+                            <li class="p-2 rounded-lg bg-slate-50 flex justify-between"><strong class="text-sky-700">627</strong> <span class="font-sans text-slate-700">Services bancaires et assimilés (Frais)</span></li>
+                            <li class="p-2 rounded-lg bg-slate-50 flex justify-between"><strong class="text-sky-700">661</strong> <span class="font-sans text-slate-700">Charges d'intérêts</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right: Interactive Accounting Journal Table -->
+                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1 rounded-lg bg-slate-900 text-white font-num font-bold text-xs" id="journalDateHeader">01/06/N</span>
+                            <span class="text-xs text-slate-500 font-medium">Livre-Journal • Partie Double</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addJournalRow()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Ajouter une ligne
+                            </button>
+                            <button onclick="fillJournalCorrection()" class="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold text-xs transition">
+                                <i class="fa-solid fa-eye mr-1"></i> Afficher le corrigé
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Journal Grid -->
+                    <div class="overflow-x-auto rounded-xl border-2 border-slate-800">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                                    <th class="py-2.5 px-3 w-36">N° Compte</th>
+                                    <th class="py-2.5 px-3">Intitulé du compte</th>
+                                    <th class="py-2.5 px-3 w-36 text-right text-emerald-300">Débit (€)</th>
+                                    <th class="py-2.5 px-3 w-36 text-right text-amber-300">Crédit (€)</th>
+                                    <th class="py-2.5 px-2 w-10 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="journalRowsBody" class="divide-y divide-slate-200 text-xs sm:text-sm">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                            <tfoot class="bg-slate-100 border-t-2 border-slate-800 font-num text-xs sm:text-sm font-bold">
+                                <tr>
+                                    <td colspan="2" class="py-2.5 px-3 text-slate-700 font-sans">
+                                        Libellé : <span id="journalLabelFooter" class="italic font-normal text-slate-600">Souscription emprunt</span>
+                                    </td>
+                                    <td class="py-2.5 px-3 text-right text-slate-900" id="journalTotalDebit">0,00 €</td>
+                                    <td class="py-2.5 px-3 text-right text-slate-900" id="journalTotalCredit">0,00 €</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Balance Indicator & Validate Button -->
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div id="journalBalanceBadge" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 flex items-center gap-2">
+                            <i class="fa-solid fa-scale-unbalanced"></i> Saisissez les montants au Débit et au Crédit
+                        </div>
+                        <button onclick="verifyJournalEntry()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-double"></i> Valider l'écriture au journal
+                        </button>
+                    </div>
+
+                    <!-- Detailed Feedback Box -->
+                    <div id="journalFeedbackBox" class="hidden mt-4 p-4 rounded-xl text-xs sm:text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- MODULE 5 : SIMULATEUR LIBRE (BAC À SABLE) & EXAMEN BLANC ALÉATOIRE  -->
+        <!-- =================================================================== -->
+        <section id="module-5" class="hidden space-y-8">
+            <!-- Hero Banner Module 5 -->
+            <div class="bg-gradient-to-r from-rennes-900 via-purple-950 to-slate-900 rounded-2xl p-6 text-white shadow-md">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-400/20 text-purple-200 border border-purple-400/30 mb-2">
+                            <i class="fa-solid fa-rocket"></i> Module 5 sur 5 • Entraînement Illimité & Simulation
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Générateur d'Examen Blanc & Simulateur Libre</h1>
+                        <p class="text-purple-100/90 text-sm mt-1 max-w-3xl">
+                            Testez-vous en conditions d'examen avec un sujet inédit généré aléatoirement (noté sur 20), ou utilisez le comparateur financier libre pour simuler n'importe quel emprunt.
+                        </p>
+                    </div>
+                    <div class="inline-flex rounded-xl bg-slate-800/90 p-1.5 border border-slate-700 shrink-0">
+                        <button onclick="switchMod5View('exam')" id="mod5-btn-exam" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+                            <i class="fa-solid fa-award mr-1 text-amber-400"></i> Examen Blanc (/20)
+                        </button>
+                        <button onclick="switchMod5View('sandbox')" id="mod5-btn-sandbox" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition">
+                            <i class="fa-solid fa-Sliders mr-1 text-sky-400"></i> Simulateur Libre
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5A: RANDOM EXAM GENERATOR -->
+            <div id="mod5-view-exam" class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-purple-600">Sujet d'Entraînement Aléatoire • +200 XP</span>
+                            <h2 class="text-xl font-bold text-slate-900 mt-0.5" id="examCompanyTitle">Cas Société REMBRANDT</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="generateNewExam()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-dice"></i> Générer un nouveau sujet
+                            </button>
+                            <button onclick="fillExamCorrection()" class="px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold text-xs sm:text-sm transition">
+                                <i class="fa-solid fa-eye mr-1"></i> Corrigé
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Exam Subject Statement -->
+                    <div id="examStatementBox" class="my-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Exam Questions Grid (6 graded questions = 20 pts) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                        <!-- Q1: Taux équivalent -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-purple-700 uppercase">Question 1 (3 pts) — Taux équivalent</span>
+                                <span id="exam-q1-badge" class="text-xs font-bold"></span>
+                            </div>
+                            <p class="text-xs text-slate-600">Calculer le <strong>taux mensuel équivalent</strong> en % (arrondi à 3 décimales, ex: 0,407) :</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="examInputQ1" placeholder="Ex: 0,327" class="cell-input w-40 px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold">
+                                <span class="font-num font-bold text-slate-600">%</span>
+                            </div>
+                        </div>
+
+                        <!-- Q2: Amortissement constant -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-purple-700 uppercase">Question 2 (3 pts) — Amortissement constant</span>
+                                <span id="exam-q2-badge" class="text-xs font-bold"></span>
+                            </div>
+                            <p class="text-xs text-slate-600">Calculer le montant de l'<strong>amortissement annuel constant</strong> (€) :</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="examInputQ2" placeholder="Montant en €" class="cell-input w-44 px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold">
+                                <span class="font-num font-bold text-slate-600">€</span>
+                            </div>
+                        </div>
+
+                        <!-- Q3: Intérêt 1re année & 1re annuité (Amort constant) -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-purple-700 uppercase">Question 3 (4 pts) — 1<sup>re</sup> Échéance (Amort. constant)</span>
+                                <span id="exam-q3-badge" class="text-xs font-bold"></span>
+                            </div>
+                            <p class="text-xs text-slate-600">Pour la 1<sup>re</sup> échéance annuelle en amortissement constant, indiquez :</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[11px] font-semibold text-slate-500">Intérêt 1<sup>re</sup> année (€)</label>
+                                    <input type="text" id="examInputQ3Int" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-semibold text-slate-500">1<sup>re</sup> Annuité totale (€)</label>
+                                    <input type="text" id="examInputQ3Ann" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q4: Annuité constante -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-purple-700 uppercase">Question 4 (4 pts) — Mode Annuité Constante</span>
+                                <span id="exam-q4-badge" class="text-xs font-bold"></span>
+                            </div>
+                            <p class="text-xs text-slate-600">Si l'emprunt était remboursé par <strong>annuités constantes</strong>, quel serait le montant de l'annuité (€) ?</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="examInputQ4" placeholder="Ex: 45230,15" class="cell-input w-44 px-3 py-2 rounded-lg border border-slate-300 text-sm font-bold">
+                                <span class="font-num font-bold text-slate-600">€</span>
+                            </div>
+                        </div>
+
+                        <!-- Q5: Écriture de souscription avec frais -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2 md:col-span-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-purple-700 uppercase">Question 5 (6 pts) — Écriture comptable de souscription avec frais bancaires (TVA 20%)</span>
+                                <span id="exam-q5-badge" class="text-xs font-bold"></span>
+                            </div>
+                            <p class="text-xs text-slate-600">Indiquez les montants exacts enregistrés dans chaque compte lors de la mise à disposition des fonds :</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1">
+                                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                    <label class="block text-[11px] font-bold text-slate-700">Débit 512 - Banque (Net)</label>
+                                    <input type="text" id="examInput512" class="cell-input w-full mt-1 px-2.5 py-1.5 rounded border border-slate-300 bg-white text-sm font-bold">
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                    <label class="block text-[11px] font-bold text-slate-700">Débit 627 - Frais HT</label>
+                                    <input type="text" id="examInput627" class="cell-input w-full mt-1 px-2.5 py-1.5 rounded border border-slate-300 bg-white text-sm font-bold">
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                    <label class="block text-[11px] font-bold text-slate-700">Débit 44566 - TVA (20%)</label>
+                                    <input type="text" id="examInput44566" class="cell-input w-full mt-1 px-2.5 py-1.5 rounded border border-slate-300 bg-white text-sm font-bold">
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                                    <label class="block text-[11px] font-bold text-slate-700">Crédit 164 - Emprunt</label>
+                                    <input type="text" id="examInput164" class="cell-input w-full mt-1 px-2.5 py-1.5 rounded border border-slate-300 bg-white text-sm font-bold">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                        <button onclick="gradeRandomExam()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-graduation-cap"></i> Corriger ma copie & Calculer ma note (/20)
+                        </button>
+                        <div id="examFinalScoreDisplay" class="font-num text-lg font-extrabold text-slate-800"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5B: SANDBOX FREE SIMULATOR -->
+            <div id="mod5-view-sandbox" class="hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-lg font-bold text-slate-900 mb-4"><i class="fa-solid fa-sliders text-sky-600 mr-1.5"></i> Paramètres de votre emprunt personnalisé</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Capital emprunté (€)</label>
+                            <input type="number" id="sbCapital" value="150000" step="5000" min="1000" oninput="updateSandbox()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-num font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Taux annuel (%)</label>
+                            <input type="number" id="sbRate" value="4.5" step="0.1" min="0.1" max="30" oninput="updateSandbox()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-num font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Durée (années)</label>
+                            <input type="number" id="sbYears" value="5" step="1" min="1" max="25" oninput="updateSandbox()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-num font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Frais de dossier HT (€)</label>
+                            <input type="number" id="sbFees" value="1200" step="100" min="0" oninput="updateSandbox()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-num font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Modalité affichée</label>
+                            <select id="sbMode" onchange="updateSandbox()" class="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm bg-white">
+                                <option value="const">Amortissement constant</option>
+                                <option value="annuite">Annuité constante</option>
+                                <option value="infine">Remboursement in fine</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards of the 3 Modes -->
+                    <div id="sbSummaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Generated Sandbox Table -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                                    <th class="py-2.5 px-3">Période</th>
+                                    <th class="py-2.5 px-3 text-right">Capital début</th>
+                                    <th class="py-2.5 px-3 text-right text-amber-300">Intérêts</th>
+                                    <th class="py-2.5 px-3 text-right text-emerald-300">Amortissement</th>
+                                    <th class="py-2.5 px-3 text-right text-sky-300">Annuité</th>
+                                    <th class="py-2.5 px-3 text-right">Capital fin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sbTableBody" class="divide-y divide-slate-200 font-num text-xs sm:text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== FLOATING FINANCIAL CALCULATOR ==================== -->
+    <div id="calcWidget" class="hidden fixed bottom-5 right-5 z-50 w-80 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
+        <div class="bg-slate-800 px-4 py-2.5 flex items-center justify-between border-b border-slate-700">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-calculator"></i> Calculatrice Financière
+            </span>
+            <button onclick="toggleCalculator()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-4 space-y-3 text-xs">
+            <div>
+                <label class="block text-slate-400 mb-1">Expression mathématique (supporte ^ pour puissance)</label>
+                <div class="flex gap-1.5">
+                    <input type="text" id="calcExprInput" placeholder="Ex: 630000 * 0.054" onkeydown="if(event.key==='Enter') runQuickCalc()" class="w-full px-2.5 py-2 rounded-lg bg-slate-800 border border-slate-600 font-num text-white text-xs focus:outline-none focus:border-amber-400">
+                    <button onclick="runQuickCalc()" class="px-3 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold">=</button>
+                </div>
+                <div id="calcExprOutput" class="mt-1.5 font-num font-bold text-sm text-emerald-400 text-right min-h-[20px]"></div>
+            </div>
+            <div class="border-t border-slate-800 pt-2">
+                <div class="text-[11px] font-bold text-sky-300 mb-1.5">Raccourcis Formules du Cours :</div>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="insertCalcPreset('630000 * 0.054 / (1 - (1 + 0.054)^(-6))')" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-left text-[11px] text-slate-300">Annuité Gauguin</button>
+                    <button onclick="insertCalcPreset('((1 + 0.05)^(1/12) - 1) * 100')" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-left text-[11px] text-slate-300">Taux mensuel 5%</button>
+                    <button onclick="insertCalcPreset('((1 + 0.05)^(1/4) - 1) * 100')" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-left text-[11px] text-slate-300">Taux trim. 5%</button>
+                    <button onclick="insertCalcPreset('630000 - 2500 * 1.2')" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-left text-[11px] text-slate-300">Net Banque Gauguin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL : MÉMENTO FORMULES & PCG ==================== -->
+    <div id="formulaModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-slate-200 p-6">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 class="text-lg font-extrabold text-slate-900"><i class="fa-solid fa-book-open text-sky-600 mr-2"></i>Mémento Officiel — Titre 4 : Les Emprunts Bancaires</h3>
+                <button onclick="toggleModal('formulaModal')" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4 mt-4 text-xs sm:text-sm text-slate-700">
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <h4 class="font-bold text-slate-900 mb-1">1. Formules des Tableaux de Remboursement</h4>
+                    <ul class="list-disc list-inside space-y-1 font-num text-xs">
+                        <li><strong>Intérêts périodiques</strong> = Capital restant dû début × Taux périodique</li>
+                        <li><strong>Annuité (ou périodicité)</strong> = Amortissement du capital + Intérêts</li>
+                        <li><strong>Capital fin</strong> = Capital début - Amortissement du capital</li>
+                        <li><strong>Amortissement constant</strong> = Capital emprunté / Nombre total d'échéances</li>
+                        <li><strong>Annuité constante</strong> = Capital × i / (1 - (1 + i)<sup>-n</sup>)</li>
+                        <li><strong>Taux équivalent</strong> i<sub>x</sub> = (1 + i)<sup>(1/x)</sup> - 1 (avec x = 12 mois, x = 4 trimestres, x = 2 semestres)</li>
+                    </ul>
+                </div>
+                <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200">
+                    <h4 class="font-bold text-sky-950 mb-1">2. Schémas d'Écritures Comptables (PCG)</h4>
+                    <p class="text-xs mb-2"><strong>A. À la souscription de l'emprunt :</strong></p>
+                    <ul class="list-disc list-inside space-y-1 text-xs">
+                        <li>Débit <strong>512 - Banque</strong> (Montant net reçu = Emprunt - Frais TTC)</li>
+                        <li>Débit <strong>627 - Services bancaires et assimilés</strong> (Frais de dossier HT, s'il y en a)</li>
+                        <li>Débit <strong>44566 - État, TVA déductible sur B&amp;S</strong> (TVA 20% sur les frais bancaires uniquement)</li>
+                        <li>Crédit <strong>164 - Emprunts auprès des établissements de crédit</strong> (Capital total emprunté)</li>
+                    </ul>
+                    <p class="text-xs mt-3 mb-2"><strong>B. À chaque échéance de remboursement :</strong></p>
+                    <ul class="list-disc list-inside space-y-1 text-xs">
+                        <li>Débit <strong>164 - Emprunts auprès des étab. de crédit</strong> (Montant de l'amortissement du capital)</li>
+                        <li>Débit <strong>661 - Charges d'intérêts</strong> (Montant des intérêts de la période)</li>
+                        <li>Crédit <strong>512 - Banque</strong> (Montant de l'annuité totale décaissée)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="toggleModal('formulaModal')" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs">Fermer le mémento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL : RESET PROGRESSION ==================== -->
+    <div id="resetModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 p-6">
+            <h3 class="text-lg font-bold text-slate-900">Réinitialiser votre progression ?</h3>
+            <p class="text-xs sm:text-sm text-slate-600 mt-2">
+                Cette action effacera vos points XP et les badges validés dans le stockage local de votre navigateur (<code class="font-num">localStorage</code>).
+            </p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button onclick="toggleModal('resetModal')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">Annuler</button>
+                <button onclick="confirmResetProgress()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">Oui, réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-4 text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+                <strong>ComptaLab L3 MIAGE</strong> — Comptabilité Financière (Titre 4 : Les emprunts bancaires • Cours &amp; TD A. PIERRE, Université de Rennes)
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-emerald-600 font-medium"><i class="fa-solid fa-floppy-disk"></i> Sauvegarde auto (localStorage)</span>
+                <span>•</span>
+                <span>100% statique &amp; compatible GitHub Pages</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== APPLICATION JAVASCRIPT ==================== -->
+    <script>
+        /* =========================================================================
+           1. STATE MANAGEMENT & LOCALSTORAGE PERSISTENCE
+           ========================================================================= */
+        const STORAGE_KEY = 'comptalab_miage_emprunts_v1';
+
+        let appState = {
+            currentModule: 1,
+            teacherMode: false,
+            xp: 0,
+            completedItems: {
+                quizMod1: false,
+                daliRates: false,
+                table_gauguin_infine: false,
+                table_gauguin_const: false,
+                table_gauguin_annuite: false,
+                table_dali_annuel: false,
+                table_dali_trim: false,
+                table_dali_mensuel: false,
+                synthEx1: false,
+                synthEx2: false,
+                journal_0: false,
+                journal_1: false,
+                journal_2: false,
+                journal_3: false,
+                randomExam: false
+            }
+        };
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appState.xp = parsed.xp || 0;
+                    appState.completedItems = { ...appState.completedItems, ...(parsed.completedItems || {}) };
+                }
+            } catch (e) {
+                console.warn('LocalStorage non disponible:', e);
+            }
+            updateProgressUI();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    xp: appState.xp,
+                    completedItems: appState.completedItems
+                }));
+            } catch (e) {
+                console.warn('Erreur sauvegarde localStorage:', e);
+            }
+            updateProgressUI();
+        }
+
+        function awardCompletion(key, xpAmount) {
+            if (!appState.completedItems[key]) {
+                appState.completedItems[key] = true;
+                appState.xp += xpAmount;
+                saveState();
+            }
+        }
+
+        function updateProgressUI() {
+            const keys = Object.keys(appState.completedItems);
+            const doneCount = keys.filter(k => appState.completedItems[k]).length;
+            const pct = Math.round((doneCount / keys.length) * 100);
+
+            document.getElementById('xpDisplay').textContent = `${appState.xp} XP`;
+            document.getElementById('globalProgressBar').style.width = `${pct}%`;
+            document.getElementById('globalProgressText').textContent = `${pct}%`;
+
+            // Update module badges
+            const modCompletion = {
+                1: appState.completedItems.quizMod1,
+                2: appState.completedItems.daliRates,
+                3: appState.completedItems.table_gauguin_infine && appState.completedItems.table_gauguin_const && appState.completedItems.table_gauguin_annuite && appState.completedItems.table_dali_annuel && appState.completedItems.table_dali_trim && appState.completedItems.table_dali_mensuel,
+                4: appState.completedItems.journal_0 && appState.completedItems.journal_1 && appState.completedItems.journal_2 && appState.completedItems.journal_3,
+                5: appState.completedItems.randomExam
+            };
+
+            for (let m = 1; m <= 5; m++) {
+                const badge = document.getElementById(`badge-mod-${m}`);
+                if (modCompletion[m]) {
+                    badge.innerHTML = '<i class="fa-solid fa-check text-[10px]"></i>';
+                    badge.className = 'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-emerald-500 text-slate-950';
+                } else {
+                    badge.textContent = m;
+                    badge.className = m === appState.currentModule
+                        ? 'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-sky-500 text-white'
+                        : 'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-slate-700 text-slate-300';
+                }
+            }
+
+            // Update journal status icons
+            for (let j = 0; j < 4; j++) {
+                const st = document.getElementById(`j-status-${j}`);
+                if (st) {
+                    st.innerHTML = appState.completedItems[`journal_${j}`]
+                        ? '<i class="fa-solid fa-circle-check text-emerald-500"></i>'
+                        : '<i class="fa-regular fa-circle text-slate-400"></i>';
+                }
+            }
+        }
+
+        function confirmResetProgress() {
+            localStorage.removeItem(STORAGE_KEY);
+            Object.keys(appState.completedItems).forEach(k => appState.completedItems[k] = false);
+            appState.xp = 0;
+            saveState();
+            resetQuizMod1();
+            toggleModal('resetModal');
+        }
+
+        function unlockAllProgress() {
+            Object.keys(appState.completedItems).forEach(k => appState.completedItems[k] = true);
+            appState.xp = 1000;
+            saveState();
+        }
+
+        /* =========================================================================
+           2. NAVIGATION & UTILITIES
+           ========================================================================= */
+        function switchModule(modNum) {
+            appState.currentModule = modNum;
+            for (let i = 1; i <= 5; i++) {
+                const sec = document.getElementById(`module-${i}`);
+                const tab = document.getElementById(`nav-mod-${i}`);
+                if (i === modNum) {
+                    sec.classList.remove('hidden');
+                    tab.className = 'mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 border-sky-400 text-sky-300 font-bold text-xs sm:text-sm whitespace-nowrap transition-all';
+                } else {
+                    sec.classList.add('hidden');
+                    tab.className = 'mod-tab group flex items-center gap-2 px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-semibold text-xs sm:text-sm whitespace-nowrap transition-all';
+                }
+            }
+            updateProgressUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        function toggleCalculator() {
+            document.getElementById('calcWidget').classList.toggle('hidden');
+        }
+
+        function toggleTeacherMode() {
+            appState.teacherMode = !appState.teacherMode;
+            const banner = document.getElementById('teacherBanner');
+            const label = document.getElementById('teacherModeLabel');
+            const btn = document.getElementById('teacherModeBtn');
+            if (appState.teacherMode) {
+                banner.classList.remove('hidden');
+                label.textContent = 'Mode Enseignant';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-indigo-600 text-xs font-bold text-white border border-indigo-400 flex items-center gap-1.5 transition';
+            } else {
+                banner.classList.add('hidden');
+                label.textContent = 'Mode Étudiant';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 flex items-center gap-1.5 transition';
+            }
+        }
+
+        // Number formatting & parsing utilities (French accounting format)
+        function formatFR(num, decimals = 2) {
+            if (num === null || num === undefined || isNaN(num)) return '';
+            return Number(num).toLocaleString('fr-FR', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function parseFRInput(str) {
+            if (str === null || str === undefined) return NaN;
+            const cleaned = String(str).replace(/\s/g, '').replace(/\u00A0/g, '').replace(/\u202F/g, '').replace(/€/g, '').replace(/%/g, '').replace(',', '.');
+            if (cleaned === '') return NaN;
+            return parseFloat(cleaned);
+        }
+
+        function insertCalcPreset(expr) {
+            document.getElementById('calcExprInput').value = expr;
+            runQuickCalc();
+        }
+
+        function runQuickCalc() {
+            const raw = document.getElementById('calcExprInput').value;
+            const out = document.getElementById('calcExprOutput');
+            try {
+                const sanitized = raw.replace(/,/g, '.').replace(/\^/g, '**').replace(/[^0-9+\-*/().\s*]/g, '');
+                const res = Function('"use strict";return (' + sanitized + ')')();
+                if (typeof res === 'number' && !isNaN(res)) {
+                    out.textContent = `= ${formatFR(res, 4)} (arrondi: ${formatFR(res, 2)})`;
+                } else {
+                    out.textContent = 'Expression invalide';
+                }
+            } catch (e) {
+                out.textContent = 'Erreur de syntaxe';
+            }
+        }
+
+        /* =========================================================================
+           3. MODULE 1 : COURS INTERACTIF & QUIZ FONDAMENTAUX
+           ========================================================================= */
+        const finNodesData = {
+            auto: {
+                tag: 'Financement Interne',
+                title: 'Autofinancement',
+                desc: "Ressources générées par l'activité propre de l'entreprise (Capacité d'Autofinancement - CAF) et conservées pour financer ses investissements sans faire appel à des tiers extérieurs.",
+                rule: "Avantage : Indépendance financière totale et aucun intérêt à verser."
+            },
+            cp: {
+                tag: 'Financement Externe • Haut de Bilan',
+                title: 'Capitaux Propres (Actionnaires)',
+                desc: "Apports en capital réalisés par les associés ou actionnaires lors de la constitution ou d'une augmentation de capital.",
+                rule: "PCG : Compte 101 - Capital social. Rémunéré par des dividendes (si bénéfice) et non par des intérêts."
+            },
+            sub: {
+                tag: 'Financement Externe • Public',
+                title: 'Subventions et Aides Publiques',
+                desc: "Aides financières octroyées par des organisations publiques (État, collectivités territoriales, Union Européenne) pour soutenir un investissement ou l'exploitation.",
+                rule: "PCG : Compte 13 - Subventions d'investissement ou Compte 74 - Subventions d'exploitation."
+            },
+            banque: {
+                tag: 'Financement Externe • Établissements de Crédit',
+                title: 'Financements Bancaires',
+                desc: "Regroupe les concours financiers accordés par les banques : principalement le crédit-bail (location avec option d'achat) et les emprunts bancaires classiques.",
+                rule: "Distinction clé : En crédit-bail l'entreprise n'est pas propriétaire du bien pendant le contrat (loyers en compte 612)."
+            },
+            cb: {
+                tag: 'Financement Bancaire • Location',
+                title: 'Le Crédit-Bail (Leasing)',
+                desc: "Contrat de location d'un bien mobilier ou immobilier assorti d'une promesse unilatérale de vente (option d'achat) en fin de contrat.",
+                rule: "PCG : Redevances de crédit-bail enregistrées en charge (Compte 612)."
+            },
+            emprunt: {
+                tag: 'Cœur du Chapitre (Titre 4)',
+                title: 'Les Emprunts Bancaires (Compte 164)',
+                desc: "Somme d'argent (capital) mise à la disposition, par un établissement financier (prêteur), à un emprunteur qui s'engage à la rembourser avec intérêts sur 1 à plus de 20 ans.",
+                rule: "PCG : Dette financière au passif (Compte 164). Intérêts en charges financières (Compte 661)."
+            }
+        };
+
+        function showFinInfo(key) {
+            const d = finNodesData[key];
+            document.getElementById('finInfoTag').textContent = d.tag;
+            document.getElementById('finInfoTitle').textContent = d.title;
+            document.getElementById('finInfoDesc').textContent = d.desc;
+            document.getElementById('finInfoRule').innerHTML = `<i class="fa-solid fa-scale-balanced mr-1"></i> ${d.rule}`;
+        }
+
+        // CM Comparator Data (60 000 € / 4% / 6 ans — Slides 5, 6, 7)
+        const cmExamples = {
+            infine: {
+                title: 'Remboursement In Fine (CM Diapo 123)',
+                desc: "Le capital (60 000 €) est amorti en une seule fois au terme de la durée (N+5). Chaque année, l'entreprise ne paie que l'intérêt fixe : 60 000 × 4% = 2 400 €.",
+                adv: 'Avantage : Différer au maximum les décaissements de trésorerie.',
+                rows: [
+                    ['N', 60000, 2400, 0, 2400, 60000],
+                    ['N+1', 60000, 2400, 0, 2400, 60000],
+                    ['N+2', 60000, 2400, 0, 2400, 60000],
+                    ['N+3', 60000, 2400, 0, 2400, 60000],
+                    ['N+4', 60000, 2400, 0, 2400, 60000],
+                    ['N+5', 60000, 2400, 60000, 62400, 0]
+                ],
+                totInt: 14400,
+                totAmort: 60000,
+                totAnn: 74400
+            },
+            const: {
+                title: 'Remboursement par Amortissement Constant (CM Diapo 124)',
+                desc: "Le capital est amorti à parts égales : 60 000 / 6 = 10 000 € par an. Le capital restant dû baisse de 10 000 € chaque année, donc les intérêts diminuent régulièrement.",
+                adv: "Avantage : Coût total de l'emprunt le moins élevé à taux d'intérêt identique (8 400 €).",
+                rows: [
+                    ['N', 60000, 2400, 10000, 12400, 50000],
+                    ['N+1', 50000, 2000, 10000, 12000, 40000],
+                    ['N+2', 40000, 1600, 10000, 11600, 30000],
+                    ['N+3', 30000, 1200, 10000, 11200, 20000],
+                    ['N+4', 20000, 800, 10000, 10800, 10000],
+                    ['N+5', 10000, 400, 10000, 10400, 0]
+                ],
+                totInt: 8400,
+                totAmort: 60000,
+                totAnn: 68400
+            },
+            annuite: {
+                title: 'Remboursement par Annuité Constante (CM Diapo 125)',
+                desc: "Les paiements périodiques sont constants : Annuité = 60 000 × 4% / (1 - (1+4%)^-6) = 11 445,71 €. L'amortissement s'obtient par différence : Annuité - Intérêts.",
+                adv: "Avantage : Décaissements périodiques identiques et coût proche de l'amortissement constant.",
+                rows: [
+                    ['N', 60000.00, 2400.00, 9045.71, 11445.71, 50954.29],
+                    ['N+1', 50954.29, 2038.17, 9407.54, 11445.71, 41546.75],
+                    ['N+2', 41546.75, 1661.87, 9783.84, 11445.71, 31762.91],
+                    ['N+3', 31762.91, 1270.52, 10175.19, 11445.71, 21587.72],
+                    ['N+4', 21587.72, 863.51, 10582.20, 11445.71, 11005.52],
+                    ['N+5', 11005.52, 440.22, 11005.52, 11445.74, 0.00]
+                ],
+                totInt: 8674.29,
+                totAmort: 60000.00,
+                totAnn: 68674.26
+            }
+        };
+
+        function setCmMode(mode) {
+            ['infine', 'const', 'annuite'].forEach(m => {
+                const btn = document.getElementById(`cm-btn-${m}`);
+                btn.className = (m === mode)
+                    ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white shadow-sm transition'
+                    : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+            });
+
+            const data = cmExamples[mode];
+            const isDec = mode === 'annuite';
+
+            document.getElementById('cmModeExplain').innerHTML = `
+                <div>
+                    <div class="font-bold text-xs sm:text-sm text-sky-950">${data.title}</div>
+                    <p class="text-xs text-sky-800 mt-0.5">${data.desc}</p>
+                    <div class="text-xs font-bold text-emerald-700 mt-1"><i class="fa-solid fa-star mr-1"></i>${data.adv}</div>
+                </div>
+            `;
+
+            const tbody = document.getElementById('cmTableBody');
+            tbody.innerHTML = data.rows.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="py-2 px-3 font-sans font-bold text-slate-700">${r[0]}</td>
+                    <td class="py-2 px-3 text-right">${formatFR(r[1], isDec ? 2 : 0)} €</td>
+                    <td class="py-2 px-3 text-right text-amber-700 font-semibold">${formatFR(r[2], isDec ? 2 : 0)} €</td>
+                    <td class="py-2 px-3 text-right text-emerald-700 font-semibold">${formatFR(r[3], isDec ? 2 : 0)} €</td>
+                    <td class="py-2 px-3 text-right text-sky-700 font-bold">${formatFR(r[4], isDec ? 2 : 0)} €</td>
+                    <td class="py-2 px-3 text-right font-semibold">${formatFR(r[5], isDec ? 2 : 0)} €</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('cmTableFoot').innerHTML = `
+                <tr>
+                    <td class="py-2.5 px-3 font-sans">Total</td>
+                    <td class="py-2.5 px-3 text-right text-slate-400">—</td>
+                    <td class="py-2.5 px-3 text-right text-amber-800">${formatFR(data.totInt, isDec ? 2 : 0)} €</td>
+                    <td class="py-2.5 px-3 text-right text-emerald-800">${formatFR(data.totAmort, 0)} €</td>
+                    <td class="py-2.5 px-3 text-right text-sky-900">${formatFR(data.totAnn, isDec ? 2 : 0)} €</td>
+                    <td class="py-2.5 px-3 text-right text-slate-400">—</td>
+                </tr>
+            `;
+        }
+
+        // Quiz Data Module 1 (8 Questions)
+        const quizQuestionsMod1 = [
+            {
+                q: "1. Dans la classification des financements (CM Diapo 120), où se situe l'emprunt bancaire ?",
+                options: [
+                    "Dans l'autofinancement (financement interne)",
+                    "Dans les financements externes bancaires, aux côtés du crédit-bail",
+                    "Dans les capitaux propres apportés par les actionnaires",
+                    "Dans les subventions et aides publiques"
+                ],
+                correct: 1,
+                explain: "Exact ! Les financements bancaires font partie des financements externes et regroupent le crédit-bail et les emprunts."
+            },
+            {
+                q: "2. Sur quelle base sont toujours calculés les intérêts périodiques d'un emprunt ?",
+                options: [
+                    "Sur le capital initial emprunté, quelle que soit la modalité",
+                    "Sur le montant de l'annuité précédente",
+                    "Sur le capital restant dû en début de période multiplié par le taux d'intérêt",
+                    "Sur l'amortissement du capital de la période"
+                ],
+                correct: 2,
+                explain: "Bravo ! Intérêts périodiques = Capital restant dû en début de période × Taux d'intérêt."
+            },
+            {
+                q: "3. Quelle modalité de remboursement permet d'obtenir le coût total d'intérêt le moins élevé (à taux et durée identiques) ?",
+                options: [
+                    "Le remboursement in fine",
+                    "Le remboursement par amortissement constant",
+                    "Le remboursement par annuité constante",
+                    "Les trois modalités ont exactement le même coût"
+                ],
+                correct: 1,
+                explain: "Parfait ! L'amortissement constant amortit le capital plus rapidement dès les premières années que l'annuité constante ou le in fine."
+            },
+            {
+                q: "4. Dans un remboursement par annuités constantes, comment évoluent les intérêts et l'amortissement au fil du temps ?",
+                options: [
+                    "Les intérêts augmentent et l'amortissement diminue",
+                    "Les intérêts et l'amortissement restent constants",
+                    "Les intérêts diminuent progressivement tandis que l'amortissement du capital augmente",
+                    "L'amortissement est nul jusqu'à la dernière année"
+                ],
+                correct: 2,
+                explain: "Tout à fait ! Comme le capital restant dû diminue, la part d'intérêts baisse à chaque échéance, ce qui augmente d'autant la part d'amortissement au sein de l'annuité constante."
+            },
+            {
+                q: "5. Quel compte du Plan Comptable Général (PCG) enregistre la dette de capital d'un emprunt bancaire ?",
+                options: [
+                    "Le compte 512 - Banque",
+                    "Le compte 661 - Charges d'intérêts",
+                    "Le compte 164 - Emprunts auprès des établissements de crédit",
+                    "Le compte 101 - Capital social"
+                ],
+                correct: 2,
+                explain: "Exact ! Le compte 164 est crédité à la souscription (naissance de la dette) et débité à chaque remboursement de capital."
+            },
+            {
+                q: "6. Quel est le traitement de la TVA lors de la souscription d'un emprunt avec frais de dossier bancaires ?",
+                options: [
+                    "TVA à 20% sur la totalité du capital emprunté (164)",
+                    "Aucune TVA sur le capital emprunté (opération financière), mais TVA déductible (44566) à 20% sur les frais bancaires (627)",
+                    "TVA à 20% sur les intérêts (661) payés chaque année",
+                    "Aucune TVA ni sur l'emprunt ni sur les frais bancaires"
+                ],
+                correct: 1,
+                explain: "Très bien ! Le capital emprunté et les intérêts sont des opérations financières exonérées de TVA. Seuls les frais bancaires (627) supportent la TVA (44566)."
+            },
+            {
+                q: "7. Lors du paiement d'une annuité de remboursement (ex: Amortissement 10 000 €, Intérêts 2 400 €), quelle est l'écriture au journal ?",
+                options: [
+                    "Débit 512 (12 400) / Crédit 164 (10 000) et Crédit 661 (2 400)",
+                    "Débit 164 (12 400) / Crédit 512 (12 400)",
+                    "Débit 164 (10 000) et Débit 661 (2 400) / Crédit 512 (12 400)",
+                    "Débit 661 (12 400) / Crédit 512 (12 400)"
+                ],
+                correct: 2,
+                explain: "Exact ! On débite 164 pour diminuer la dette en capital (10 000 €), on débite 661 pour constater la charge d'intérêt (2 400 €), et on crédite 512 Banque du décaissement total (12 400 €)."
+            },
+            {
+                q: "8. Quelle est la formule exacte du taux équivalent i_x pour une fraction d'année (x périodes par an) ?",
+                options: [
+                    "i_x = i / x",
+                    "i_x = (1 + i)^(1/x) - 1",
+                    "i_x = (1 + i)^x - 1",
+                    "i_x = (1 - i)^(-x)"
+                ],
+                correct: 1,
+                explain: "Bravo ! i_x = (1 + i)^(1/x) - 1 avec x = 12 pour un taux mensuel et x = 4 pour un taux trimestriel."
+            }
+        ];
+
+        let quizAnswersMod1 = Array(quizQuestionsMod1.length).fill(null);
+
+        function renderQuizMod1() {
+            const container = document.getElementById('quizContainerMod1');
+            container.innerHTML = quizQuestionsMod1.map((item, qIdx) => {
+                const answered = quizAnswersMod1[qIdx] !== null;
+                return `
+                    <div class="p-4 rounded-xl border ${answered ? (quizAnswersMod1[qIdx] === item.correct ? 'border-emerald-300 bg-emerald-50/30' : 'border-rose-300 bg-rose-50/30') : 'border-slate-200 bg-slate-50/60'} flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs sm:text-sm text-slate-900 mb-3">${item.q}</h3>
+                            <div class="space-y-2">
+                                ${item.options.map((opt, oIdx) => {
+                                    let btnStyle = 'bg-white hover:bg-sky-50 border-slate-200 text-slate-700';
+                                    if (answered) {
+                                        if (oIdx === item.correct) {
+                                            btnStyle = 'bg-emerald-600 border-emerald-600 text-white font-semibold';
+                                        } else if (oIdx === quizAnswersMod1[qIdx]) {
+                                            btnStyle = 'bg-rose-600 border-rose-600 text-white font-semibold';
+                                        } else {
+                                            btnStyle = 'bg-white border-slate-200 text-slate-400 opacity-75';
+                                        }
+                                    }
+                                    return `
+                                        <button onclick="answerQuizMod1(${qIdx}, ${oIdx})" ${answered ? 'disabled' : ''} class="w-full text-left px-3 py-2 rounded-lg border text-xs transition flex items-center justify-between ${btnStyle}">
+                                            <span>${opt}</span>
+                                            ${answered && oIdx === item.correct ? '<i class="fa-solid fa-check ml-2"></i>' : ''}
+                                            ${answered && oIdx === quizAnswersMod1[qIdx] && oIdx !== item.correct ? '<i class="fa-solid fa-xmark ml-2"></i>' : ''}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        ${answered ? `
+                            <div class="mt-3 pt-2.5 border-t border-slate-200/80 text-xs ${quizAnswersMod1[qIdx] === item.correct ? 'text-emerald-800' : 'text-rose-800'}">
+                                <strong>${quizAnswersMod1[qIdx] === item.correct ? '✓ Correct :' : '✗ Explication :'}</strong> ${item.explain}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const score = quizAnswersMod1.reduce((acc, ans, idx) => acc + (ans === quizQuestionsMod1[idx].correct ? 1 : 0), 0);
+            const badge = document.getElementById('quizScoreBadge');
+            badge.textContent = `Score : ${score} / ${quizQuestionsMod1.length}`;
+            if (score >= 6) {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+                awardCompletion('quizMod1', 150);
+            }
+        }
+
+        function answerQuizMod1(qIdx, oIdx) {
+            quizAnswersMod1[qIdx] = oIdx;
+            renderQuizMod1();
+        }
+
+        function resetQuizMod1() {
+            quizAnswersMod1 = Array(quizQuestionsMod1.length).fill(null);
+            renderQuizMod1();
+        }
+
+        /* =========================================================================
+           4. MODULE 2 : TAUX ÉQUIVALENTS & CALCULS FINANCIERS (CAS DALI Q1)
+           ========================================================================= */
+        function updateEqConverter() {
+            const annualPct = parseFloat(document.getElementById('simRateInput').value) || 0;
+            const x = parseInt(document.getElementById('simPeriodSelect').value, 10) || 12;
+            const i = annualPct / 100;
+            const ix = Math.pow(1 + i, 1 / x) - 1;
+            const ixPct = ix * 100;
+
+            const periodLabel = x === 12 ? 'mensuel' : (x === 4 ? 'trimestriel' : 'semestriel');
+            document.getElementById('eqConverterResult').innerHTML = `
+                <div class="text-slate-400 text-xs mb-1">Calcul pour i = ${formatFR(annualPct, 2)}% et x = ${x} :</div>
+                <div>i<sub>${x}</sub> = (1 + ${formatFR(i, 4)})<sup>(1/${x})</sup> - 1 = <strong class="text-amber-300 text-sm">${formatFR(ixPct, 3)} %</strong> <span class="text-slate-400">(${formatFR(ixPct, 5)} %)</span></div>
+                <div class="text-[11px] text-sky-300 mt-1">Soit un taux ${periodLabel} équivalent à retenir dans les tableaux : <strong>${formatFR(ixPct, 3)}%</strong></div>
+            `;
+        }
+
+        function fillDaliRates() {
+            document.getElementById('daliMensuelInput').value = '0,407';
+            document.getElementById('daliTrimInput').value = '1,227';
+            document.getElementById('gauguinAnnuiteInput').value = '125 713,27';
+            verifyModule2();
+        }
+
+        function verifyModule2() {
+            const mVal = parseFRInput(document.getElementById('daliMensuelInput').value);
+            const tVal = parseFRInput(document.getElementById('daliTrimInput').value);
+            const gVal = parseFRInput(document.getElementById('gauguinAnnuiteInput').value);
+
+            const mOk = !isNaN(mVal) && Math.abs(mVal - 0.4074) <= 0.005;
+            const tOk = !isNaN(tVal) && Math.abs(tVal - 1.2272) <= 0.005;
+            const gOk = !isNaN(gVal) && Math.abs(gVal - 125713.27) <= 0.5;
+
+            const setStyle = (inputId, fbId, ok, msg) => {
+                const inp = document.getElementById(inputId);
+                const fb = document.getElementById(fbId);
+                inp.classList.remove('cell-correct', 'cell-wrong');
+                inp.classList.add(ok ? 'cell-correct' : 'cell-wrong');
+                fb.textContent = msg;
+                fb.className = `text-xs font-bold ml-2 ${ok ? 'text-emerald-700' : 'text-rose-600'}`;
+            };
+
+            setStyle('daliMensuelInput', 'daliMensuelFeedback', mOk, mOk ? '✓ Exact : 0,407%' : '✗ Attendu : (1+5%)^(1/12)-1 = 0,407%');
+            setStyle('daliTrimInput', 'daliTrimFeedback', tOk, tOk ? '✓ Exact : 1,227%' : '✗ Attendu : (1+5%)^(1/4)-1 = 1,227%');
+            setStyle('gauguinAnnuiteInput', 'gauguinAnnuiteFeedback', gOk, gOk ? '✓ Exact : 125 713,27 €' : '✗ Attendu : 125 713,27 €');
+
+            if (mOk && tOk && gOk) {
+                awardCompletion('daliRates', 100);
+            }
+        }
+
+        /* =========================================================================
+           5. MODULE 3 : TABLEAUX D'AMORTISSEMENT INTERACTIFS (TD EX 1 & EX 2)
+           ========================================================================= */
+        // Complete dataset matching A. PIERRE's official TD correction PDF line by line
+        const tdTablesData = {
+            gauguin_infine: {
+                caseGroup: 'gauguin',
+                title: 'Société GAUGUIN — Modalité 1A : Remboursement In Fine',
+                paymentHeader: 'Annuité',
+                hint: 'Formules : Intérêts = 630 000 × 5,4% = 34 020 € | Amortissement = 0 € (ans 1 à 5) puis 630 000 € (an 6).',
+                totalInterest: 204120,
+                totalAmort: '630 000,00 €',
+                rows: [
+                    { date: '01/06/N+1', capDeb: 630000, int: 34020, amort: 0, pay: 34020, capFin: 630000 },
+                    { date: '01/06/N+2', capDeb: 630000, int: 34020, amort: 0, pay: 34020, capFin: 630000 },
+                    { date: '01/06/N+3', capDeb: 630000, int: 34020, amort: 0, pay: 34020, capFin: 630000 },
+                    { date: '01/06/N+4', capDeb: 630000, int: 34020, amort: 0, pay: 34020, capFin: 630000 },
+                    { date: '01/06/N+5', capDeb: 630000, int: 34020, amort: 0, pay: 34020, capFin: 630000 },
+                    { date: '01/06/N+6', capDeb: 630000, int: 34020, amort: 630000, pay: 664020, capFin: 0 }
+                ]
+            },
+            gauguin_const: {
+                caseGroup: 'gauguin',
+                title: 'Société GAUGUIN — Modalité 1B : Amortissement Constant',
+                paymentHeader: 'Annuité',
+                hint: 'Formules : Amortissement constant = 630 000 / 6 = 105 000 € | Intérêts = Capital début × 5,4%.',
+                totalInterest: 119070,
+                totalAmort: '630 000,00 €',
+                rows: [
+                    { date: '01/06/N+1', capDeb: 630000, int: 34020, amort: 105000, pay: 139020, capFin: 525000 },
+                    { date: '01/06/N+2', capDeb: 525000, int: 28350, amort: 105000, pay: 133350, capFin: 420000 },
+                    { date: '01/06/N+3', capDeb: 420000, int: 22680, amort: 105000, pay: 127680, capFin: 315000 },
+                    { date: '01/06/N+4', capDeb: 315000, int: 17010, amort: 105000, pay: 122010, capFin: 210000 },
+                    { date: '01/06/N+5', capDeb: 210000, int: 11340, amort: 105000, pay: 116340, capFin: 105000 },
+                    { date: '01/06/N+6', capDeb: 105000, int: 5670, amort: 105000, pay: 110670, capFin: 0 }
+                ]
+            },
+            gauguin_annuite: {
+                caseGroup: 'gauguin',
+                title: 'Société GAUGUIN — Modalité 1C : Annuité Constante',
+                paymentHeader: 'Annuité',
+                hint: 'Formules : Annuité = 630 000 × 5,4% / (1 - (1+5,4%)^-6) = 125 713,27 € | Amortissement = Annuité - Intérêts.',
+                totalInterest: 124279.60,
+                totalAmort: '630 000,00 €',
+                rows: [
+                    { date: '01/06/N+1', capDeb: 630000.00, int: 34020.00, amort: 91693.27, pay: 125713.27, capFin: 538306.73 },
+                    { date: '01/06/N+2', capDeb: 538306.73, int: 29068.56, amort: 96644.71, pay: 125713.27, capFin: 441662.02 },
+                    { date: '01/06/N+3', capDeb: 441662.02, int: 23849.75, amort: 101863.52, pay: 125713.27, capFin: 339798.50 },
+                    { date: '01/06/N+4', capDeb: 339798.50, int: 18349.12, amort: 107364.15, pay: 125713.27, capFin: 232434.35 },
+                    { date: '01/06/N+5', capDeb: 232434.35, int: 12551.45, amort: 113161.82, pay: 125713.27, capFin: 119272.53 },
+                    { date: '01/06/N+6', capDeb: 119272.53, int: 6440.72, amort: 119272.53, pay: 125713.25, altPay: 125713.27, capFin: 0 }
+                ]
+            },
+            dali_annuel: {
+                caseGroup: 'dali',
+                title: 'Société DALI — 2A : Échéance Annuelle (1re année jusqu\'au 31/03/N+1)',
+                paymentHeader: 'Annuité',
+                hint: 'Amortissement annuel = 80 000 / 4 = 20 000 € | Intérêts = 80 000 × 5,00% = 4 000 €.',
+                totalInterest: 4000,
+                totalAmort: '20 000,00 € (sur 1 an)',
+                rows: [
+                    { date: '31/03/N+1', capDeb: 80000, int: 4000, amort: 20000, pay: 24000, capFin: 60000 }
+                ]
+            },
+            dali_trim: {
+                caseGroup: 'dali',
+                title: 'Société DALI — 2B : Échéance Trimestrielle (1re année : 4 trimestres)',
+                paymentHeader: 'Trimestrialité',
+                hint: 'Taux trimestriel équivalent = 1,227% | Amortissement = 80 000 / (4 × 4) = 5 000 € par trimestre.',
+                totalInterest: 3558.30,
+                totalAmort: '20 000,00 € (sur 1 an)',
+                rows: [
+                    { date: '30/06/N', capDeb: 80000, int: 981.60, amort: 5000, pay: 5981.60, altPay: 5809.60, capFin: 75000 },
+                    { date: '30/09/N', capDeb: 75000, int: 920.25, amort: 5000, pay: 5920.25, altPay: 5759.00, capFin: 70000 },
+                    { date: '31/12/N', capDeb: 70000, int: 858.90, amort: 5000, pay: 5858.90, altPay: 5708.40, capFin: 65000 },
+                    { date: '31/03/N+1', capDeb: 65000, int: 797.55, amort: 5000, pay: 5797.55, altPay: 5657.80, capFin: 60000 }
+                ]
+            },
+            dali_mensuel: {
+                caseGroup: 'dali',
+                title: 'Société DALI — 2C : Échéance Mensuelle (1re année : 12 mois)',
+                paymentHeader: 'Mensualité',
+                hint: 'Taux mensuel équivalent = 0,407% | Amortissement = 80 000 / (4 × 12) = 1 666,67 € par mois.',
+                totalInterest: 3459.50,
+                totalAmort: '20 000,00 € (sur 1 an)',
+                rows: [
+                    { date: '30/04/N', capDeb: 80000.00, int: 325.60, amort: 1666.67, pay: 1992.27, capFin: 78333.33 },
+                    { date: '31/05/N', capDeb: 78333.33, int: 318.82, amort: 1666.67, pay: 1985.48, capFin: 76666.67 },
+                    { date: '30/06/N', capDeb: 76666.67, int: 312.03, amort: 1666.67, pay: 1978.70, capFin: 75000.00 },
+                    { date: '31/07/N', capDeb: 75000.00, int: 305.25, amort: 1666.67, pay: 1971.92, capFin: 73333.33 },
+                    { date: '31/08/N', capDeb: 73333.33, int: 298.47, amort: 1666.67, pay: 1965.13, capFin: 71666.67 },
+                    { date: '30/09/N', capDeb: 71666.67, int: 291.68, amort: 1666.67, pay: 1958.35, capFin: 70000.00 },
+                    { date: '31/10/N', capDeb: 70000.00, int: 284.90, amort: 1666.67, pay: 1951.57, capFin: 68333.33 },
+                    { date: '30/11/N', capDeb: 68333.33, int: 278.12, amort: 1666.67, pay: 1944.78, capFin: 66666.67 },
+                    { date: '31/12/N', capDeb: 66666.67, int: 271.33, amort: 1666.67, pay: 1938.00, capFin: 65000.00 },
+                    { date: '31/01/N+1', capDeb: 65000.00, int: 264.55, amort: 1666.67, pay: 1931.22, capFin: 63333.33 },
+                    { date: '28/02/N+1', capDeb: 63333.33, int: 257.77, amort: 1666.67, pay: 1924.43, capFin: 61666.67 },
+                    { date: '31/03/N+1', capDeb: 61666.67, int: 250.98, amort: 1666.67, pay: 1917.65, capFin: 60000.00 }
+                ]
+            }
+        };
+
+        let activeTableKey = 'gauguin_infine';
+
+        function switchTdCase(group) {
+            const gDiv = document.getElementById('td-case-gauguin');
+            const dDiv = document.getElementById('td-case-dali');
+            const gBtn = document.getElementById('td-case-btn-gauguin');
+            const dBtn = document.getElementById('td-case-btn-dali');
+
+            if (group === 'gauguin') {
+                gDiv.classList.remove('hidden');
+                dDiv.classList.add('hidden');
+                gBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-sky-500 text-white shadow transition';
+                dBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition';
+                loadTableActivity('gauguin_infine');
+            } else {
+                gDiv.classList.add('hidden');
+                dDiv.classList.remove('hidden');
+                dBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-emerald-500 text-slate-950 shadow transition';
+                gBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition';
+                loadTableActivity('dali_annuel');
+            }
+        }
+
+        function loadTableActivity(key) {
+            activeTableKey = key;
+            const cfg = tdTablesData[key];
+
+            // Highlight active sub-tab
+            document.querySelectorAll('.td-subtab').forEach(btn => {
+                btn.className = 'td-subtab px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+            });
+            const activeBtn = document.getElementById(`tab-${key}`);
+            if (activeBtn) {
+                activeBtn.className = 'td-subtab px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white shadow-sm transition';
+            }
+
+            document.getElementById('activeTableTitle').textContent = cfg.title;
+            document.getElementById('activeTableHint').innerHTML = `<i class="fa-solid fa-calculator mr-1"></i> ${cfg.hint}`;
+            document.getElementById('activeTableColPayment').textContent = cfg.paymentHeader;
+            document.getElementById('footerTotalAmort').textContent = cfg.totalAmort;
+
+            // Show or hide Dali Trimestrialité note
+            const trimNote = document.getElementById('daliTrimNote');
+            if (key === 'dali_trim') trimNote.classList.remove('hidden');
+            else trimNote.classList.add('hidden');
+
+            // Update status badge
+            updateActiveTableBadge();
+
+            // Render rows
+            const tbody = document.getElementById('interactiveTableBody');
+            tbody.innerHTML = cfg.rows.map((r, idx) => `
+                <tr class="hover:bg-slate-50/80">
+                    <td class="py-2 px-3 font-num font-bold text-slate-700 bg-slate-50">${r.date}</td>
+                    <td class="py-2 px-2 text-right">
+                        <input type="text" id="cell-${idx}-capDeb" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm">
+                    </td>
+                    <td class="py-2 px-2 text-right">
+                        <input type="text" id="cell-${idx}-int" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm">
+                    </td>
+                    <td class="py-2 px-2 text-right">
+                        <input type="text" id="cell-${idx}-amort" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm">
+                    </td>
+                    <td class="py-2 px-2 text-right">
+                        <input type="text" id="cell-${idx}-pay" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm">
+                    </td>
+                    <td class="py-2 px-2 text-right">
+                        <input type="text" id="cell-${idx}-capFin" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm">
+                    </td>
+                </tr>
+            `).join('');
+
+            const totInp = document.getElementById('inputTotalInterest');
+            totInp.value = '';
+            totInp.classList.remove('cell-correct', 'cell-wrong');
+            document.getElementById('tableFeedbackBanner').classList.add('hidden');
+        }
+
+        function updateActiveTableBadge() {
+            const badge = document.getElementById('activeTableStatusBadge');
+            const isDone = appState.completedItems[`table_${activeTableKey}`];
+            if (isDone) {
+                badge.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Validé';
+                badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+            } else {
+                badge.textContent = 'À compléter';
+                badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600';
+            }
+        }
+
+        function verifyCellVal(userVal, expected, altExpected = null) {
+            if (isNaN(userVal)) return false;
+            if (Math.abs(userVal - expected) <= 0.15) return true;
+            if (altExpected !== null && Math.abs(userVal - altExpected) <= 0.15) return true;
+            return false;
+        }
+
+        function verifyActiveTable() {
+            const cfg = tdTablesData[activeTableKey];
+            let totalCells = 0;
+            let correctCells = 0;
+
+            cfg.rows.forEach((r, idx) => {
+                const fields = [
+                    { key: 'capDeb', exp: r.capDeb },
+                    { key: 'int', exp: r.int },
+                    { key: 'amort', exp: r.amort },
+                    { key: 'pay', exp: r.pay, alt: r.altPay || null },
+                    { key: 'capFin', exp: r.capFin }
+                ];
+
+                fields.forEach(f => {
+                    totalCells++;
+                    const el = document.getElementById(`cell-${idx}-${f.key}`);
+                    const val = parseFRInput(el.value);
+                    const ok = verifyCellVal(val, f.exp, f.alt);
+                    el.classList.remove('cell-correct', 'cell-wrong');
+                    el.classList.add(ok ? 'cell-correct' : 'cell-wrong');
+                    if (ok) correctCells++;
+                });
+            });
+
+            // Check Total Interest
+            totalCells++;
+            const totEl = document.getElementById('inputTotalInterest');
+            const totVal = parseFRInput(totEl.value);
+            const totOk = verifyCellVal(totVal, cfg.totalInterest);
+            totEl.classList.remove('cell-correct', 'cell-wrong');
+            totEl.classList.add(totOk ? 'cell-correct' : 'cell-wrong');
+            if (totOk) correctCells++;
+
+            const banner = document.getElementById('tableFeedbackBanner');
+            banner.classList.remove('hidden');
+
+            if (correctCells === totalCells) {
+                banner.className = 'mt-4 p-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-center justify-between';
+                banner.innerHTML = `<span><i class="fa-solid fa-trophy text-emerald-600 mr-2"></i> Félicitations ! Les ${totalCells} cellules du tableau sont parfaitement exactes (+75 XP).</span>`;
+                awardCompletion(`table_${activeTableKey}`, 75);
+                updateActiveTableBadge();
+            } else {
+                banner.className = 'mt-4 p-4 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 border border-rose-200 text-rose-900';
+                banner.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-600 mr-1.5"></i> <strong>${correctCells} / ${totalCells} cellules justes.</strong> Les cellules en rouge comportent une erreur ou sont vides. Astuce : vérifiez la 1<sup>re</sup> ligne puis cliquez sur <em>« Auto-compléter la suite »</em> !`;
+            }
+        }
+
+        function autoCompleteRemainingRows() {
+            const cfg = tdTablesData[activeTableKey];
+            const r0 = cfg.rows[0];
+            // Check if row 0 is already filled correctly; if not, fill row 0 and explain, if yes, fill all remaining rows
+            const c0Deb = parseFRInput(document.getElementById('cell-0-capDeb').value);
+            const c0Int = parseFRInput(document.getElementById('cell-0-int').value);
+            const c0Amort = parseFRInput(document.getElementById('cell-0-amort').value);
+
+            const row0Ready = verifyCellVal(c0Deb, r0.capDeb) && verifyCellVal(c0Int, r0.int) && verifyCellVal(c0Amort, r0.amort);
+
+            if (!row0Ready) {
+                // Fill row 0 to help the student start
+                const isDec = (activeTableKey === 'gauguin_annuite' || activeTableKey === 'dali_trim' || activeTableKey === 'dali_mensuel');
+                document.getElementById('cell-0-capDeb').value = formatFR(r0.capDeb, isDec ? 2 : 0);
+                document.getElementById('cell-0-int').value = formatFR(r0.int, isDec ? 2 : 0);
+                document.getElementById('cell-0-amort').value = formatFR(r0.amort, isDec ? 2 : 0);
+                document.getElementById('cell-0-pay').value = formatFR(r0.pay, isDec ? 2 : 0);
+                document.getElementById('cell-0-capFin').value = formatFR(r0.capFin, isDec ? 2 : 0);
+
+                const banner = document.getElementById('tableFeedbackBanner');
+                banner.classList.remove('hidden');
+                banner.className = 'mt-4 p-3.5 rounded-xl text-xs sm:text-sm bg-sky-50 border border-sky-200 text-sky-900';
+                banner.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-sky-600 mr-1.5"></i> <strong>1<sup>re</sup> ligne complétée !</strong> Observez comment elle est construite, puis recliquez sur <em>« Auto-compléter la suite »</em> pour dérouler tout le reste du tableau.`;
+            } else {
+                fillActiveTableCorrection();
+            }
+        }
+
+        function fillActiveTableCorrection() {
+            const cfg = tdTablesData[activeTableKey];
+            const isDec = (activeTableKey === 'gauguin_annuite' || activeTableKey === 'dali_trim' || activeTableKey === 'dali_mensuel');
+
+            cfg.rows.forEach((r, idx) => {
+                document.getElementById(`cell-${idx}-capDeb`).value = formatFR(r.capDeb, isDec ? 2 : 0);
+                document.getElementById(`cell-${idx}-int`).value = formatFR(r.int, isDec ? 2 : 0);
+                document.getElementById(`cell-${idx}-amort`).value = formatFR(r.amort, isDec ? 2 : 0);
+                document.getElementById(`cell-${idx}-pay`).value = formatFR(r.pay, isDec ? 2 : 0);
+                document.getElementById(`cell-${idx}-capFin`).value = formatFR(r.capFin, isDec ? 2 : 0);
+            });
+            document.getElementById('inputTotalInterest').value = formatFR(cfg.totalInterest, isDec ? 2 : 0);
+            verifyActiveTable();
+        }
+
+        function clearActiveTable() {
+            loadTableActivity(activeTableKey);
+        }
+
+        function verifySynthesisEx1() {
+            const v1 = document.getElementById('adv-select-infine').value;
+            const v2 = document.getElementById('adv-select-const').value;
+            const v3 = document.getElementById('adv-select-annuite').value;
+            const fb = document.getElementById('synthEx1Feedback');
+
+            if (v1 === 'diff' && v2 === 'cout' && v3 === 'id') {
+                fb.textContent = '✓ Parfait ! Les 3 avantages sont exacts (+50 XP).';
+                fb.className = 'text-xs font-bold text-emerald-700';
+                awardCompletion('synthEx1', 50);
+            } else {
+                fb.textContent = '✗ Vérifiez vos associations (In fine = différer ; Amort constant = coût minimal ; Annuité constante = paiements identiques).';
+                fb.className = 'text-xs font-bold text-rose-600';
+            }
+        }
+
+        function verifySynthesisEx2() {
+            const c1 = document.getElementById('dali-adv-1').checked;
+            const c2 = document.getElementById('dali-adv-2').checked;
+            const c3 = document.getElementById('dali-adv-3').checked;
+            const fb = document.getElementById('synthEx2Feedback');
+
+            if (c1 && c2 && !c3) {
+                fb.textContent = '✓ Conseil de gestion validé (+50 XP) !';
+                fb.className = 'text-xs font-bold text-emerald-700';
+                awardCompletion('synthEx2', 50);
+            } else {
+                fb.textContent = '✗ Cochez uniquement les 2 premiers arguments (coût minimal en mensuel vs trésorerie/rendement > 5% en annuel).';
+                fb.className = 'text-xs font-bold text-rose-600';
+            }
+        }
+
+        /* =========================================================================
+           6. MODULE 4 : SIMULATEUR D'ÉCRITURES COMPTABLES AU JOURNAL (PCG)
+           ========================================================================= */
+        const pcgAccountsList = [
+            { num: '164', label: 'Emprunts auprès des étab. de crédit' },
+            { num: '44566', label: 'État - TVA déductible sur B&S' },
+            { num: '512', label: 'Banque' },
+            { num: '627', label: 'Services bancaires et assimilés (Frais bancaires)' },
+            { num: '661', label: "Charges d'intérêts" },
+            { num: '215', label: 'Installations techniques, matériel et outillage (Piège)' },
+            { num: '401', label: 'Fournisseurs (Piège)' },
+            { num: '44571', label: 'État - TVA collectée (Piège)' }
+        ];
+
+        const journalExercises = [
+            {
+                id: 0,
+                badge: 'Cas 1 • Exemple du Cours Magistral (Diapo 126)',
+                title: "Souscription d'un emprunt sans frais de dossier",
+                date: 'Date de souscription',
+                labelFooter: 'Souscription emprunt',
+                prompt: `Une société emprunte <strong>60 000 €</strong> au taux d'intérêt fixe de 4% sur une durée de 6 ans. Aucun frais de dossier n'est retenu.<br><span class="text-rose-700 font-semibold">Rappel :</span> Il s'agit d'une opération financière &rArr; Pas de TVA !`,
+                expected: [
+                    { num: '512', debit: 60000, credit: 0 },
+                    { num: '164', debit: 0, credit: 60000 }
+                ],
+                explain: "À la souscription sans frais, la trésorerie augmente au débit du compte 512 - Banque (60 000 €) par le crédit du compte de dette financière 164 - Emprunts auprès des établissements de crédit (60 000 €)."
+            },
+            {
+                id: 1,
+                badge: 'Cas 2 • TD Exercice 1 Question 2 (Société GAUGUIN)',
+                title: "Souscription de l'emprunt GAUGUIN au 1er juin N (avec frais bancaires)",
+                date: '01/06/N',
+                labelFooter: 'Souscription emprunt',
+                prompt: `Le <strong>1<sup>er</sup> juin N</strong>, la société <strong>GAUGUIN</strong> obtient un prêt de <strong>630 000 €</strong> (5,4%, 6 ans). À l'occasion de cette opération, des <strong>frais bancaires de 2 500 € HT</strong> ont été supportés (TVA à 20%).<br><em>Astuce du corrigé :</em> Banque = 630 000 - 2 500 × (1 + 20%) = <strong>627 000 €</strong>.`,
+                expected: [
+                    { num: '512', debit: 627000, credit: 0 },
+                    { num: '627', debit: 2500, credit: 0 },
+                    { num: '44566', debit: 500, credit: 0 },
+                    { num: '164', debit: 0, credit: 630000 }
+                ],
+                explain: "Corrigé officiel A. PIERRE : On débite 512 Banque pour le net encaissé (630 000 - 3 000 = 627 000 €), 627 Frais bancaires pour 2 500 € HT, 44566 État - TVA déductible sur B&S pour 500 € (2 500 × 20%), et on crédite 164 Emprunts auprès des étab. de crédit pour le nominal de 630 000 €."
+            },
+            {
+                id: 2,
+                badge: 'Cas 3 • Exemple du Cours Magistral (Diapo 127)',
+                title: "Paiement de la 1re annuité de l'exemple du CM",
+                date: 'Date de paiement',
+                labelFooter: 'Paiement de la première annuité',
+                prompt: `À la première échéance annuelle de l'emprunt de 60 000 € (4%, 6 ans, amortissement constant), l'entreprise rembourse <strong>10 000 € d'amortissement du capital</strong> et paie <strong>2 400 € d'intérêts</strong> (Annuité = 12 400 €).`,
+                expected: [
+                    { num: '164', debit: 10000, credit: 0 },
+                    { num: '661', debit: 2400, credit: 0 },
+                    { num: '512', debit: 0, credit: 12400 }
+                ],
+                explain: "À l'échéance, on débite 164 pour la fraction de capital remboursée (10 000 €) et 661 Charges d'intérêts (2 400 €), par le crédit du compte 512 Banque (12 400 €)."
+            },
+            {
+                id: 3,
+                badge: 'Cas 4 • TD Exercice 1 Question 3 (Société GAUGUIN)',
+                title: "Remboursement de la 4e annuité GAUGUIN au 01/06/N+4",
+                date: '01/06/N+4',
+                labelFooter: 'Paiement de la quatrième annuité',
+                prompt: `Présenter l'écriture comptable de remboursement de la <strong>4<sup>e</sup> annuité au 01/06/N+4</strong> de la société <strong>GAUGUIN</strong> (mode = <strong>amortissement constant</strong>).<br><em>Rappel du tableau 1B au 01/06/N+4 :</em> Capital début = 315 000 €, Intérêts = <strong>17 010 €</strong>, Amortissement = <strong>105 000 €</strong>, Annuité = <strong>122 010 €</strong>.`,
+                expected: [
+                    { num: '164', debit: 105000, credit: 0 },
+                    { num: '661', debit: 17010, credit: 0 },
+                    { num: '512', debit: 0, credit: 122010 }
+                ],
+                explain: "Corrigé officiel A. PIERRE : Au 01/06/N+4, Débit 164 Emprunts auprès des étab. de crédit pour 105 000 €, Débit 661 Charges d'intérêts pour 17 010 €, et Crédit 512 Banque pour l'annuité totale de 122 010 €."
+            }
+        ];
+
+        let activeJournalIdx = 1; // Default to TD Gauguin Q2 for immediate impact
+        let currentJournalRows = [];
+
+        function loadJournalExercise(idx) {
+            activeJournalIdx = idx;
+            const ex = journalExercises[idx];
+
+            for (let i = 0; i < 4; i++) {
+                const card = document.getElementById(`j-tab-${i}`);
+                card.className = (i === idx)
+                    ? 'j-card text-left p-4 rounded-2xl border-2 border-sky-600 bg-sky-50/50 transition shadow-sm'
+                    : 'j-card text-left p-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition shadow-sm';
+            }
+
+            document.getElementById('journalBadge').textContent = ex.badge;
+            document.getElementById('journalTitle').textContent = ex.title;
+            document.getElementById('journalPrompt').innerHTML = ex.prompt;
+            document.getElementById('journalDateHeader').textContent = ex.date;
+            document.getElementById('journalLabelFooter').textContent = ex.labelFooter;
+            document.getElementById('journalFeedbackBox').classList.add('hidden');
+
+            // Initialize empty rows matching the number of expected lines
+            currentJournalRows = ex.expected.map(() => ({ num: '', debit: '', credit: '' }));
+            renderJournalRows();
+        }
+
+        function renderJournalRows() {
+            const tbody = document.getElementById('journalRowsBody');
+            tbody.innerHTML = currentJournalRows.map((row, rIdx) => {
+                const foundAcc = pcgAccountsList.find(a => a.num === row.num);
+                const accLabel = foundAcc ? foundAcc.label : '— Sélectionnez un compte —';
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2 px-2">
+                            <select onchange="updateJournalRowAccount(${rIdx}, this.value)" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-num font-bold text-xs sm:text-sm bg-white">
+                                <option value="">N° Compte</option>
+                                ${pcgAccountsList.map(a => `<option value="${a.num}" ${row.num === a.num ? 'selected' : ''}>${a.num}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="py-2 px-3 font-medium text-slate-700 text-xs sm:text-sm">${accLabel}</td>
+                        <td class="py-2 px-2">
+                            <input type="text" value="${row.debit}" oninput="updateJournalRowAmount(${rIdx}, 'debit', this.value)" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold">
+                        </td>
+                        <td class="py-2 px-2">
+                            <input type="text" value="${row.credit}" oninput="updateJournalRowAmount(${rIdx}, 'credit', this.value)" placeholder="0,00" class="cell-input w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold">
+                        </td>
+                        <td class="py-2 px-2 text-center">
+                            <button onclick="removeJournalRow(${rIdx})" class="text-slate-400 hover:text-rose-600" title="Supprimer la ligne">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            updateJournalTotals();
+        }
+
+        function updateJournalRowAccount(rIdx, val) {
+            currentJournalRows[rIdx].num = val;
+            renderJournalRows();
+        }
+
+        function updateJournalRowAmount(rIdx, side, val) {
+            currentJournalRows[rIdx][side] = val;
+            updateJournalTotals();
+        }
+
+        function addJournalRow() {
+            currentJournalRows.push({ num: '', debit: '', credit: '' });
+            renderJournalRows();
+        }
+
+        function removeJournalRow(rIdx) {
+            if (currentJournalRows.length > 1) {
+                currentJournalRows.splice(rIdx, 1);
+                renderJournalRows();
+            }
+        }
+
+        function updateJournalTotals() {
+            let totD = 0;
+            let totC = 0;
+            currentJournalRows.forEach(r => {
+                const d = parseFRInput(r.debit);
+                const c = parseFRInput(r.credit);
+                if (!isNaN(d)) totD += d;
+                if (!isNaN(c)) totC += c;
+            });
+
+            document.getElementById('journalTotalDebit').textContent = `${formatFR(totD, 2)} €`;
+            document.getElementById('journalTotalCredit').textContent = `${formatFR(totC, 2)} €`;
+
+            const badge = document.getElementById('journalBalanceBadge');
+            if (totD > 0 && Math.abs(totD - totC) < 0.01) {
+                badge.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-2';
+                badge.innerHTML = `<i class="fa-solid fa-scale-balanced text-emerald-600"></i> Écriture équilibrée : Débit = Crédit (${formatFR(totD, 2)} €)`;
+            } else {
+                const diff = Math.abs(totD - totC);
+                badge.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 flex items-center gap-2';
+                badge.innerHTML = `<i class="fa-solid fa-scale-unbalanced text-amber-600"></i> Écart Débit / Crédit : ${formatFR(diff, 2)} €`;
+            }
+        }
+
+        function fillJournalCorrection() {
+            const ex = journalExercises[activeJournalIdx];
+            currentJournalRows = ex.expected.map(item => ({
+                num: item.num,
+                debit: item.debit > 0 ? formatFR(item.debit, 0) : '',
+                credit: item.credit > 0 ? formatFR(item.credit, 0) : ''
+            }));
+            renderJournalRows();
+            verifyJournalEntry();
+        }
+
+        function verifyJournalEntry() {
+            const ex = journalExercises[activeJournalIdx];
+            const fb = document.getElementById('journalFeedbackBox');
+            fb.classList.remove('hidden');
+
+            // Normalize user rows (ignore empty rows)
+            const activeUserRows = currentJournalRows
+                .map(r => ({
+                    num: r.num,
+                    debit: parseFRInput(r.debit) || 0,
+                    credit: parseFRInput(r.credit) || 0
+                }))
+                .filter(r => r.num !== '' || r.debit > 0 || r.credit > 0);
+
+            // Check that every expected row is present in activeUserRows and no extra wrong rows exist
+            let allMatched = activeUserRows.length === ex.expected.length;
+            if (allMatched) {
+                for (const exp of ex.expected) {
+                    const match = activeUserRows.find(u =>
+                        u.num === exp.num &&
+                        Math.abs(u.debit - exp.debit) <= 0.05 &&
+                        Math.abs(u.credit - exp.credit) <= 0.05
+                    );
+                    if (!match) {
+                        allMatched = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allMatched) {
+                fb.className = 'mt-4 p-4 rounded-xl text-xs sm:text-sm bg-emerald-50 border border-emerald-300 text-emerald-900';
+                fb.innerHTML = `<div class="font-bold mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Écriture comptable 100% conforme au PCG (+75 XP) !</div><p>${ex.explain}</p>`;
+                awardCompletion(`journal_${activeJournalIdx}`, 75);
+            } else {
+                fb.className = 'mt-4 p-4 rounded-xl text-xs sm:text-sm bg-rose-50 border border-rose-200 text-rose-900';
+                fb.innerHTML = `<div class="font-bold mb-1"><i class="fa-solid fa-circle-xmark text-rose-600 mr-1.5"></i> L'écriture comporte une erreur de compte ou de montant.</div><p>Vérifiez que les comptes débités et crédités correspondent à l'opération et que la TVA à 20% porte uniquement sur les frais bancaires (627).</p>`;
+            }
+        }
+
+        /* =========================================================================
+           7. MODULE 5 : EXAMEN BLANC ALÉATOIRE & BAC À SABLE
+           ========================================================================= */
+        let currentExamData = null;
+
+        function switchMod5View(view) {
+            const exDiv = document.getElementById('mod5-view-exam');
+            const sbDiv = document.getElementById('mod5-view-sandbox');
+            const exBtn = document.getElementById('mod5-btn-exam');
+            const sbBtn = document.getElementById('mod5-btn-sandbox');
+
+            if (view === 'exam') {
+                exDiv.classList.remove('hidden');
+                sbDiv.classList.add('hidden');
+                exBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-purple-600 text-white shadow transition';
+                sbBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition';
+            } else {
+                exDiv.classList.add('hidden');
+                sbDiv.classList.remove('hidden');
+                sbBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-sky-600 text-white shadow transition';
+                exBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition';
+                updateSandbox();
+            }
+        }
+
+        function generateNewExam() {
+            const companies = ['REMBRANDT', 'MONET', 'CEZANNE', 'MATISSE', 'VERMEER', 'DELACROIX', 'PICASSO'];
+            const capitals = [120000, 180000, 240000, 300000, 360000, 450000, 540000];
+            const rates = [3.6, 4.0, 4.5, 4.8, 5.2, 6.0];
+            const durations = [4, 5, 6, 8];
+            const feesList = [1000, 1500, 2000, 3000];
+
+            const company = companies[Math.floor(Math.random() * companies.length)];
+            const K = capitals[Math.floor(Math.random() * capitals.length)];
+            const ratePct = rates[Math.floor(Math.random() * rates.length)];
+            const n = durations[Math.floor(Math.random() * durations.length)];
+            const feesHT = feesList[Math.floor(Math.random() * feesList.length)];
+
+            const i = ratePct / 100;
+            const iMensuelPct = (Math.pow(1 + i, 1 / 12) - 1) * 100;
+            const amortConst = K / n;
+            const intYear1 = K * i;
+            const annYear1Const = amortConst + intYear1;
+            const annConstante = K * (i / (1 - Math.pow(1 + i, -n)));
+            const tvaFees = feesHT * 0.20;
+            const netBanque = K - (feesHT + tvaFees);
+
+            currentExamData = {
+                company, K, ratePct, n, feesHT,
+                iMensuelPct, amortConst, intYear1, annYear1Const, annConstante, tvaFees, netBanque
+            };
+
+            document.getElementById('examCompanyTitle').textContent = `Sujet d'Examen Blanc — Société ${company}`;
+            document.getElementById('examStatementBox').innerHTML = `
+                Le 1<sup>er</sup> septembre N, la société <strong>${company}</strong> souscrit un emprunt bancaire de <strong class="font-num text-slate-900">${formatFR(K, 0)} €</strong> au taux d'intérêt annuel de <strong class="font-num text-slate-900">${formatFR(ratePct, 2)}%</strong> sur une durée de <strong class="font-num text-slate-900">${n} ans</strong>.<br>
+                Les frais de dossier bancaires s'élèvent à <strong class="font-num text-slate-900">${formatFR(feesHT, 0)} € HT</strong> (TVA au taux normal de 20%).
+            `;
+
+            ['examInputQ1', 'examInputQ2', 'examInputQ3Int', 'examInputQ3Ann', 'examInputQ4', 'examInput512', 'examInput627', 'examInput44566', 'examInput164'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+                el.classList.remove('cell-correct', 'cell-wrong');
+            });
+            ['exam-q1-badge', 'exam-q2-badge', 'exam-q3-badge', 'exam-q4-badge', 'exam-q5-badge'].forEach(id => {
+                document.getElementById(id).textContent = '';
+            });
+            document.getElementById('examFinalScoreDisplay').textContent = '';
+        }
+
+        function fillExamCorrection() {
+            if (!currentExamData) return;
+            const d = currentExamData;
+            document.getElementById('examInputQ1').value = formatFR(d.iMensuelPct, 3);
+            document.getElementById('examInputQ2').value = formatFR(d.amortConst, 2);
+            document.getElementById('examInputQ3Int').value = formatFR(d.intYear1, 2);
+            document.getElementById('examInputQ3Ann').value = formatFR(d.annYear1Const, 2);
+            document.getElementById('examInputQ4').value = formatFR(d.annConstante, 2);
+            document.getElementById('examInput512').value = formatFR(d.netBanque, 2);
+            document.getElementById('examInput627').value = formatFR(d.feesHT, 2);
+            document.getElementById('examInput44566').value = formatFR(d.tvaFees, 2);
+            document.getElementById('examInput164').value = formatFR(d.K, 2);
+            gradeRandomExam();
+        }
+
+        function gradeRandomExam() {
+            if (!currentExamData) return;
+            const d = currentExamData;
+            let score = 0;
+
+            const checkField = (id, exp, tol = 0.2) => {
+                const el = document.getElementById(id);
+                const val = parseFRInput(el.value);
+                const ok = !isNaN(val) && Math.abs(val - exp) <= tol;
+                el.classList.remove('cell-correct', 'cell-wrong');
+                el.classList.add(ok ? 'cell-correct' : 'cell-wrong');
+                return ok;
+            };
+
+            // Q1 (3 pts)
+            const q1Ok = checkField('examInputQ1', d.iMensuelPct, 0.008);
+            if (q1Ok) score += 3;
+            document.getElementById('exam-q1-badge').innerHTML = q1Ok ? '<span class="text-emerald-600">3 / 3 pts</span>' : `<span class="text-rose-600">0 / 3 (${formatFR(d.iMensuelPct, 3)}%)</span>`;
+
+            // Q2 (3 pts)
+            const q2Ok = checkField('examInputQ2', d.amortConst, 0.5);
+            if (q2Ok) score += 3;
+            document.getElementById('exam-q2-badge').innerHTML = q2Ok ? '<span class="text-emerald-600">3 / 3 pts</span>' : `<span class="text-rose-600">0 / 3 (${formatFR(d.amortConst, 2)} €)</span>`;
+
+            // Q3 (4 pts = 2 + 2)
+            const q3IntOk = checkField('examInputQ3Int', d.intYear1, 0.5);
+            const q3AnnOk = checkField('examInputQ3Ann', d.annYear1Const, 0.5);
+            const q3Pts = (q3IntOk ? 2 : 0) + (q3AnnOk ? 2 : 0);
+            score += q3Pts;
+            document.getElementById('exam-q3-badge').innerHTML = `<span class="${q3Pts === 4 ? 'text-emerald-600' : 'text-rose-600'}">${q3Pts} / 4 pts</span>`;
+
+            // Q4 (4 pts)
+            const q4Ok = checkField('examInputQ4', d.annConstante, 1.0);
+            if (q4Ok) score += 4;
+            document.getElementById('exam-q4-badge').innerHTML = q4Ok ? '<span class="text-emerald-600">4 / 4 pts</span>' : `<span class="text-rose-600">0 / 4 (${formatFR(d.annConstante, 2)} €)</span>`;
+
+            // Q5 (6 pts = 1.5 each)
+            const ok512 = checkField('examInput512', d.netBanque, 0.5);
+            const ok627 = checkField('examInput627', d.feesHT, 0.5);
+            const ok44566 = checkField('examInput44566', d.tvaFees, 0.5);
+            const ok164 = checkField('examInput164', d.K, 0.5);
+            const q5Pts = (ok512 ? 1.5 : 0) + (ok627 ? 1.5 : 0) + (ok44566 ? 1.5 : 0) + (ok164 ? 1.5 : 0);
+            score += q5Pts;
+            document.getElementById('exam-q5-badge').innerHTML = `<span class="${q5Pts === 6 ? 'text-emerald-600' : 'text-rose-600'}">${q5Pts} / 6 pts</span>`;
+
+            const disp = document.getElementById('examFinalScoreDisplay');
+            disp.innerHTML = `Note finale : <span class="px-3 py-1 rounded-xl ${score >= 14 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">${formatFR(score, 1)} / 20</span>`;
+
+            if (score >= 14) {
+                awardCompletion('randomExam', 200);
+            }
+        }
+
+        // Sandbox Free Simulator
+        function updateSandbox() {
+            const K = parseFloat(document.getElementById('sbCapital').value) || 100000;
+            const ratePct = parseFloat(document.getElementById('sbRate').value) || 4;
+            const n = Math.min(30, Math.max(1, parseInt(document.getElementById('sbYears').value, 10) || 5));
+            const mode = document.getElementById('sbMode').value;
+            const i = ratePct / 100;
+
+            // Compute total interest for all 3 modes
+            const totIntInFine = K * i * n;
+            const totIntConst = (K * i * (n + 1)) / 2;
+            const constAnnuity = K * (i / (1 - Math.pow(1 + i, -n)));
+            const totIntAnnuite = constAnnuity * n - K;
+
+            document.getElementById('sbSummaryCards').innerHTML = `
+                <div class="p-4 rounded-xl border ${mode === 'const' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 bg-slate-50'}">
+                    <div class="text-xs font-bold uppercase text-emerald-700">Amortissement Constant</div>
+                    <div class="font-num font-extrabold text-lg text-slate-900 mt-1">Coût intérêts : ${formatFR(totIntConst, 2)} €</div>
+                    <div class="text-xs text-slate-600 mt-0.5">Amortissement : ${formatFR(K / n, 2)} € / an</div>
+                </div>
+                <div class="p-4 rounded-xl border ${mode === 'annuite' ? 'border-sky-500 bg-sky-50/50' : 'border-slate-200 bg-slate-50'}">
+                    <div class="text-xs font-bold uppercase text-sky-700">Annuité Constante</div>
+                    <div class="font-num font-extrabold text-lg text-slate-900 mt-1">Coût intérêts : ${formatFR(totIntAnnuite, 2)} €</div>
+                    <div class="text-xs text-slate-600 mt-0.5">Annuité fixe : ${formatFR(constAnnuity, 2)} € / an</div>
+                </div>
+                <div class="p-4 rounded-xl border ${mode === 'infine' ? 'border-rose-500 bg-rose-50/50' : 'border-slate-200 bg-slate-50'}">
+                    <div class="text-xs font-bold uppercase text-rose-700">Remboursement In Fine</div>
+                    <div class="font-num font-extrabold text-lg text-slate-900 mt-1">Coût intérêts : ${formatFR(totIntInFine, 2)} €</div>
+                    <div class="text-xs text-slate-600 mt-0.5">Intérêt annuel : ${formatFR(K * i, 2)} € / an</div>
+                </div>
+            `;
+
+            // Generate rows for selected mode
+            let capDeb = K;
+            let rowsHtml = '';
+            for (let yr = 1; yr <= n; yr++) {
+                const interet = capDeb * i;
+                let amort = 0;
+                let annuite = 0;
+                if (mode === 'infine') {
+                    amort = (yr === n) ? K : 0;
+                    annuite = interet + amort;
+                } else if (mode === 'const') {
+                    amort = K / n;
+                    annuite = interet + amort;
+                } else {
+                    annuite = constAnnuity;
+                    amort = (yr === n) ? capDeb : (annuite - interet);
+                    if (yr === n) annuite = interet + amort;
+                }
+                const capFin = Math.max(0, capDeb - amort);
+                rowsHtml += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2 px-3 font-sans font-bold text-slate-700">Année ${yr}</td>
+                        <td class="py-2 px-3 text-right">${formatFR(capDeb, 2)} €</td>
+                        <td class="py-2 px-3 text-right text-amber-700">${formatFR(interet, 2)} €</td>
+                        <td class="py-2 px-3 text-right text-emerald-700">${formatFR(amort, 2)} €</td>
+                        <td class="py-2 px-3 text-right text-sky-700 font-bold">${formatFR(annuite, 2)} €</td>
+                        <td class="py-2 px-3 text-right font-semibold">${formatFR(capFin, 2)} €</td>
+                    </tr>
+                `;
+                capDeb = capFin;
+            }
+            document.getElementById('sbTableBody').innerHTML = rowsHtml;
+        }
+
+        /* =========================================================================
+           8. INITIALIZATION ON WINDOW LOAD
+           ========================================================================= */
+        window.onload = function () {
+            loadState();
+            switchModule(1);
+            setCmMode('const');
+            renderQuizMod1();
+            updateEqConverter();
+            switchTdCase('gauguin');
+            loadJournalExercise(1);
+            generateNewExam();
+            updateSandbox();
+        };
+    </script>
+</body>
+</html>
